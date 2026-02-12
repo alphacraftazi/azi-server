@@ -55,6 +55,10 @@ if (SpeechRecognition) {
     alert("Tarayıcınız ses tanımayı desteklemiyor (Chrome kullanın).");
 }
 
+} else {
+    alert("Tarayıcınız ses tanımayı desteklemiyor (Chrome kullanın).");
+}
+
 micBtn.addEventListener('click', () => {
     if (isSpeaking) {
         window.speechSynthesis.cancel();
@@ -65,6 +69,59 @@ micBtn.addEventListener('click', () => {
     if (isListening) recognition.stop();
     else recognition.start();
 });
+
+// --- VISION (CAMERA) ---
+const camBtn = document.getElementById('camBtn');
+const cameraInput = document.getElementById('cameraInput');
+
+camBtn.addEventListener('click', () => {
+    cameraInput.click();
+});
+
+cameraInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    addLog("Analyzing Image...", "sys");
+
+    // Convert to Base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const base64Image = reader.result;
+
+        try {
+            const res = await fetch(`${API_URL}/vision_scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: base64Image,
+                    prompt: "Bu fotoğrafta ne görüyorsun? Detaylı anlat."
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Konuşma
+                let finalText = data.analysis;
+                if (data.trigger_voice) {
+                    finalText = data.trigger_voice + " " + finalText;
+                }
+                addLog("Vision: " + finalText, "azi");
+                speak(finalText);
+            } else {
+                addLog("Vision Error: " + data.error, "sys");
+                speak("Görüntü analiz edilemedi efendim.");
+            }
+
+        } catch (err) {
+            console.error(err);
+            addLog("Upload Error.", "sys");
+        }
+    };
+});
+
 
 // --- 2. COMMAND PROCESSING ---
 async function processCommand(text) {

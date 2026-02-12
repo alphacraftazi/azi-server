@@ -60,11 +60,21 @@ builtins.AZI_PUBLIC_URL = None
 @app.on_event("startup")
 async def start_ngrok_tunnel():
     """Start Ngrok Tunnel on Startup"""
+    # 1. SKIP ON RENDER/CLOUD
+    if os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT"):
+        print("AZI Cloud Mode: Ngrok disabled (Using Native URL).")
+        return
+
     try:
         # Check if already running to avoid duplicates in reload
         tunnels = ngrok.get_tunnels()
         if not tunnels:
             # Open a HTTP tunnel on the default port 8001
+            # Check for Auth Token
+            auth_token = os.environ.get("NGROK_AUTHTOKEN")
+            if auth_token:
+                ngrok.set_auth_token(auth_token)
+            
             # If you have a static domain (paid), use: domain="kendi-domainin.ngrok.io"
             public_url = ngrok.connect(8001).public_url
             print(f"\n\n{'='*60}")
@@ -77,7 +87,9 @@ async def start_ngrok_tunnel():
             print(f"AZI Existing Public URL: {builtins.AZI_PUBLIC_URL}")
             
     except Exception as e:
-        print(f"Ngrok Startup Error: {e}")
+        print(f"Ngrok Warning: Could not start tunnel ({str(e)}).")
+        print("Falling back to Localhost.")
+        
         # Fallback to LAN IP
         import socket
         try:

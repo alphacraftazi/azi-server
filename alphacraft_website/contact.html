@@ -201,8 +201,8 @@
             };
 
             try {
-                // Use relative URL to adapt to the current server port (8000, 8001, etc.)
-                const apiUrl = "/api/requests/create";
+                // Use absolute URL for cross-origin requests (Website -> Render Backend)
+                const apiUrl = "https://azi-server.onrender.com/api/requests/create";
 
                 const res = await fetch(apiUrl, {
                     method: 'POST',

@@ -22,10 +22,12 @@ const AZI_CONFIG = {
             return `${protocol}//${host}:${this.LOCAL_PORT}`;
         }
 
-        // 2. Canlı Ortam (Otomatik Algılama)
-        // Sabit URL yerine, sayfanın sunulduğu adresi kullan.
-        // Böylece Render URL'i ne olursa olsun (örn: azi-server-xyz.onrender.com) çalışır.
-        return window.location.origin;
+        // 2. Canlı Ortam & Entegrasyon Modu (Varsayılan)
+        // Artık yerel de olsa, sunucu da olsa TEK AKIL (Render) ile konuşsun.
+        // Mobil ve Masaüstü senkronizasyonu için bu şart.
+        return this.PROD_URL;
+
+        // Eski: return window.location.origin;
     }
 };
 

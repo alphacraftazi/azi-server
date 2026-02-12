@@ -5,7 +5,7 @@ const AZI_CONFIG = {
     // PROD_URL: Canlı Sunucu Adresi (Render)
     // Burayı Render deploy sonrası size verilen adresle (örn: https://azi-brain-xyz.onrender.com) değiştirin.
     // Şimdilik domain stratejimize göre 'beyin.alphacraftazi.com' olarak bırakıyoruz.
-    PROD_URL: "https://beyin.alphacraftazi.com",
+    PROD_URL: "https://azi-server.onrender.com",
 
     // Port: Yerel çalışırken kullanılan port
     LOCAL_PORT: 8001,

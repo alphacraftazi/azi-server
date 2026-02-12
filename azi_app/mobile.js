@@ -55,10 +55,6 @@ if (SpeechRecognition) {
     alert("Tarayıcınız ses tanımayı desteklemiyor (Chrome kullanın).");
 }
 
-} else {
-    alert("Tarayıcınız ses tanımayı desteklemiyor (Chrome kullanın).");
-}
-
 micBtn.addEventListener('click', () => {
     if (isSpeaking) {
         window.speechSynthesis.cancel();

@@ -23,6 +23,14 @@ class BuildFactory:
         4. Zips and Returns.
         """
         try:
+            # 0. CLOUD CONTROL (RENDER KORUMASI)
+            # Render ortamında EXE derlemek sunucuyu kilitler ve çökertebilir.
+            if os.environ.get("RENDER"):
+               return {
+                   "success": False, 
+                   "error": "⚠️ BULUT GÜVENLİĞİ: 'Sistem İnşa' özelliğini kullanmak için AZI Server'ı kendi bilgisayarınızda (Localhost) çalıştırmalısınız. Bulut sunucular bu kadar ağır işlem (EXE Derleme) yapamaz."
+               }
+
             # 1. Kaynak ve Hedef Belirle
             source_map = {
                 "stock": "alpha_craft_stok",

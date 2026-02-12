@@ -133,8 +133,20 @@ async function processCommand(text) {
         const data = await res.json();
         const reply = data.response;
 
-        addLog(reply, "azi");
-        speak(reply);
+        addLog(data.response, "azi");
+
+        if (data.audio_url) {
+            // Play High Quality Server Audio
+            const audio = new Audio(data.audio_url);
+            audio.play();
+
+            // Visual Feedback
+            micBtn.classList.add('speaking');
+            audio.onended = () => micBtn.classList.remove('speaking');
+        } else {
+            // Fallback to Browser TTS
+            speak(data.response);
+        }
 
     } catch (e) {
         addLog("Server Error: " + e.message, "sys");

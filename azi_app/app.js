@@ -61,6 +61,34 @@ const messagesDiv = document.getElementById("messages");
 const wsUrl = window.WS_BASE || "ws://localhost:8001/ws";
 const ws = new WebSocket(wsUrl);
 
+const statusSpan = document.querySelector(".status span");
+const statusDiv = document.querySelector(".status");
+
+ws.onopen = function () {
+    console.log("WS Connected via", wsUrl);
+    if (statusSpan) {
+        // Show if connected to Render or Local
+        const target = wsUrl.includes("localhost") || wsUrl.includes("127.0.0.1") ? "LOCAL" : "ONLINE";
+        statusSpan.innerText = target;
+        statusSpan.style.color = "#00ffcc";
+        statusSpan.style.textShadow = "0 0 10px #00ffcc";
+        statusSpan.classList.remove("blink");
+
+        // Add Host info tooltip
+        statusDiv.title = "Connected to: " + wsUrl;
+    }
+};
+
+ws.onclose = function () {
+    console.log("WS Disconnected");
+    if (statusSpan) {
+        statusSpan.innerText = "OFFLINE";
+        statusSpan.style.color = "red";
+        statusSpan.style.textShadow = "0 0 10px red";
+        statusSpan.classList.add("blink");
+    }
+};
+
 ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
 

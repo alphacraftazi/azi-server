@@ -507,14 +507,41 @@ user_telemetry_data = {"lat": 0, "lon": 0, "last_seen": None}
 async def chat_voice(req: VoiceReq, db: Session = Depends(get_db)):
     """Mobilden gelen sesli (metne dönüşmüş) komutları işler."""
     
+    # 0. Broadcast User Message to all screens (Desktop Dashboard sees what you said)
+    await manager.broadcast_json({
+        "type": "history_sync", 
+        "sender": "user",
+        "message": req.text,
+        "timestamp": str(datetime.datetime.utcnow())
+    })
+
     # 1. Logic İşleme
     result = logic.brain_service.process(req.text, db)
     
-    # 2. Cevap
+    # 2. Voice Generation (Edge-TTS) - Natural Voice
+    audio_url = None
+    # Only generate if text is reasonable length and not code
+    if result["text"] and len(result["text"]) < 500 and "```" not in result["text"]:
+        try:
+            audio_url = await voice.voice_service.generate_audio(result["text"])
+        except Exception as e:
+            print(f"Voice Gen Error: {e}")
+
+    # 3. Broadcast AZI Message to all screens (So Desktop hears it too)
+    await manager.broadcast_json({
+        "type": "response",
+        "message": result["text"],
+        "action": result["action"],
+        "audio_url": audio_url, # Desktop plays this
+        "timestamp": str(datetime.datetime.utcnow())
+    })
+    
+    # 4. Return to Mobile Caller
     return {
         "text": req.text,
         "response": result["text"],
-        "action": result["action"]
+        "action": result["action"],
+        "audio_url": audio_url # Mobile plays this
     }
 
 @app.post("/api/telemetry/user_location")

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Staff | Personel Yönetimi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* THEME CHANGE: RED for STAFF */
+            --brand-red: #ef4444;
+            --brand-dark: #020617;
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--brand-dark);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(185, 28, 28, 0.1) 0%, transparent 20%);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #f8fafc;
+        }
+
+        .reveal p,
+        .reveal li {
+            font-size: 0.9em;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        /* LOGO CONTAINER (RED GRADIENT) */
+        .app-logo-container {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 50px rgba(127, 29, 29, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin: 0 auto 30px auto;
+        }
+
+        .app-logo-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 80px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* SCREENSHOT FRAMES */
+        .screenshot-frame {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 85%;
+            margin: 0 auto;
+            transition: transform 0.5s;
+        }
+
+        .screenshot-frame:hover {
+            transform: scale(1.02);
+            border-color: var(--brand-red);
+        }
+
+        .screenshot-img {
+            border-radius: 8px;
+            width: 100%;
+            display: block;
+        }
+
+        .feature-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        /* AZI BADGE (PURPLE) */
+        .azi-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 20px;
+            font-family: 'Orbitron';
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- 1. COVER -->
+            <section data-background-color="#020617">
+                <div class="app-logo-container">
+                    <span class="app-logo-text">A</span>
+                </div>
+                <h1 style="color: var(--brand-red); font-size: 2.0em; text-shadow: 0 0 20px rgba(239,68,68,0.5);">ALPHA
+                    CRAFT STAFF</h1>
+                <h3 style="font-size: 1.0em; font-weight: 300; opacity: 0.8;">AKILLI PERSONEL & VARDİYA YÖNETİMİ</h3>
+                <div style="margin-top: 50px; font-size: 0.8em; color: #64748b;">v2.0 PRO</div>
+            </section>
+
+            <!-- 2. THE PROBLEM -->
+            <section>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 50px;">
+                    <div style="text-align: left; flex: 1;">
+                        <h2 style="color: #ef4444; font-size: 1.5em;">GİZLİ KAÇAKLAR</h2>
+                        <div class="feature-box" style="border-left: 5px solid #ef4444;">
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Yanlış vardiya planı %15 ek
+                                maliyet yaratır.</p>
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> "Hayalet" mesailer takip
+                                edilemez.</p>
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Adil olmayan izin dağılımı
+                                motivasyonu düşürür.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. SOLUTION: DASHBOARD -->
+            <section>
+                <h2 style="font-size: 1.2em; margin-bottom: 10px;">İK OPERASYON MERKEZİ</h2>
+                <div class="screenshot-frame">
+                    <img src="shot_staff_dashboard.png" class="screenshot-img">
+                </div>
+                <div style="text-align: left; margin-top: 20px; font-size: 0.8em; padding: 0 50px;">
+                    <p>Tüm ekibiniz gözünüzün önünde. Kim izinli, kim mesaide, haftalık bütçe ne durumda? Tek ekrandan
+                        yönetin.</p>
+                </div>
+            </section>
+
+            <!-- 4. CONTROL: TEAM GRID (PERSONNEL) -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 30px;">
+                    <div style="flex: 1.5;">
+                        <div class="screenshot-frame">
+                            <img src="shot_team_grid.png" class="screenshot-img">
+                        </div>
+                    </div>
+                    <div style="flex: 1; text-align: left;">
+                        <h3 style="color: var(--brand-red); font-size: 1.2em;">DİJİTAL DOSYA</h3>
+                        <p style="font-size: 0.8em;">Her personelin performansı, yetenekleri ve maaş geçmişi kayıt
+                            altında. "Unuttum" demek yok.</p>
+                        <ul style="font-size: 0.7em; margin-top: 20px; color: #94a3b8;">
+                            <li><i class="fa-solid fa-check" style="color: #10b981;"></i> Yıldız Puanlama</li>
+                            <li><i class="fa-solid fa-check" style="color: #10b981;"></i> Otomatik Prim Hesabı</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. SMART FEATURE: SHIFT SCHEDULE -->
+            <section>
+                <h2 style="font-size: 1.2em; margin-bottom: 20px;">AKILLI VARDİYA MATRİSİ</h2>
+                <div class="screenshot-frame" style="max-width: 80%;">
+                    <img src="shot_shift_schedule.png" class="screenshot-img">
+                </div>
+                <p style="margin-top: 30px; font-size: 0.9em;">
+                    Sürükle-bırak kolaylığı ile haftalık planı yapın. Sistem, eksik pozisyonları (Örn: "Cumartesi Barmen
+                    Yok!") anında uyarsın.
+                </p>
+            </section>
+
+            <!-- 6. PAYROLL ANALYSIS -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 30px;">
+                    <div style="flex: 1; text-align: left;">
+                        <span class="azi-badge"><i class="fa-solid fa-wallet"></i> BÜTÇE EDİTÖRÜ</span>
+                        <h3 style="color: #10b981; font-size: 1.2em;">GERÇEKÇİ MALİYETLER</h3>
+                        <p style="font-size: 0.8em;">Haftalık personel maliyetiniz cironuzun %30'unu geçiyor mu? Alpha
+                            Staff, maaş ödeme gününden önce sizi uyarır.</p>
+                    </div>
+                    <div style="flex: 1.5;">
+                        <div class="screenshot-frame">
+                            <img src="shot_payroll.png" class="screenshot-img">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. AZI INTEGRATION -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 50px;">
+                    <div style="flex: 1;">
+                        <img src="azi_ai_concept.png"
+                            style="width: 100%; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.4)); animation: pulse-eye 6s infinite;">
+                    </div>
+                    <div style="flex: 1.2; text-align: left;">
+                        <div class="glass-card"
+                            style="border-left: 5px solid var(--brand-red); padding: 30px; background: rgba(139, 92, 246, 0.1);">
+                            <h2 style="color: var(--brand-red); border: none; margin-bottom: 20px; font-size: 1.8em;">
+                                AZI PERFORMANS</h2>
+                            <p style="font-size: 0.9em; line-height: 1.6; color: #e2e8f0;">
+                                Personeliniz yoruluyor mu? <strong>AZI</strong> verileri izler ve önerir.
+                            </p>
+                            <div style="margin-top: 20px; font-size: 0.8em; color: #cbd5e1;">
+                                <p><strong style="color: var(--brand-red);">• Yorgunluk Analizi:</strong> "Ahmet Şef 4
+                                    gündür üst üste kapanış yapıyor. Performansı düşebilir."</p>
+                                <p><strong style="color: var(--brand-red);">• İdeal Kadro:</strong> "Yarın maç günü, 1
+                                    ekstra komi çağırın."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. COMPARISON -->
+            <section>
+                <h2 style="font-size: 1.5em; margin-bottom: 40px;">NEDEN ALPHA STAFF?</h2>
+                <div style="display: flex; gap: 40px; justify-content: center;">
+                    <!-- LEFT: CLASSIC -->
+                    <div
+                        style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 25px;">
+                        <h4 style="color: #94a3b8; font-size: 1em; margin-bottom: 20px;"><i
+                                class="fa-solid fa-book"></i> KLASİK YÖNTEM</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.8em; text-align: left; opacity: 0.8;">
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-xmark"
+                                    style="color: #ef4444; width: 20px;"></i> Whatsapp'tan Vardiya</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-xmark"
+                                    style="color: #ef4444; width: 20px;"></i> Kayıt Dışı İzinler</li>
+                            <li><i class="fa-solid fa-xmark" style="color: #ef4444; width: 20px;"></i> Ay Sonu Sürprizi
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- RIGHT: ALPHA -->
+                    <div
+                        style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 12px; padding: 25px; transform: scale(1.05); box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);">
+                        <h4 style="color: #ef4444; font-size: 1.1em; margin-bottom: 20px;"><i
+                                class="fa-solid fa-shield-cat"></i> ALPHA STAFF</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.8em; text-align: left; color: #fff;">
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-check"
+                                    style="color: #ef4444; width: 20px;"></i> Tek Tıkla Dağıtım</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-check"
+                                    style="color: #ef4444; width: 20px;"></i> QR ile Giriş/Çıkış</li>
+                            <li><i class="fa-solid fa-check" style="color: #ef4444; width: 20px;"></i> Canlı Maliyet
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. CTA -->
+            <section data-background-color="#0f172a">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <div class="app-logo-container" style="transform: scale(0.6); margin-bottom: 20px;">
+                        <span class="app-logo-text">S</span>
+                    </div>
+
+                    <h2 style="margin-bottom: 30px; font-size: 1.6em;">EKİBİNİZİ GÜÇLENDİRİN</h2>
+
+                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px;">
+                        <div class="feature-box" style="width: 160px; text-align: center; padding: 15px;">
+                            <i class="fa-solid fa-users-gear"
+                                style="font-size: 1.5em; color: var(--brand-red); margin-bottom: 10px;"></i>
+                            <br><span style="font-size: 0.8em;">Görsel Yönetim</span>
+                        </div>
+                        <div class="feature-box" style="width: 160px; text-align: center; padding: 15px;">
+                            <i class="fa-solid fa-piggy-bank"
+                                style="font-size: 1.5em; color: #10b981; margin-bottom: 10px;"></i>
+                            <br><span style="font-size: 0.8em;">Tasarruf</span>
+                        </div>
+                    </div>
+
+                    <a href="#"
+                        style="background: var(--brand-red); color: white; padding: 12px 30px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 1em;">
+                        SİSTEMİ KUR
+                    </a>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            width: 1280,
+            height: 720,
+            margin: 0.05,
+            transition: 'convex',
+            backgroundTransition: 'fade'
+        });
+    </script>
+</body>
+
+</html>

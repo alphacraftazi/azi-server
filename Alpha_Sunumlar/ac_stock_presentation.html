@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Craft Stock | Ürün Tanıtımı</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-blue: #3b82f6;
+            --brand-dark: #020617;
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--brand-dark);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 20%);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #f8fafc;
+        }
+
+        .reveal p,
+        .reveal li {
+            font-size: 0.9em;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        /* RECREATED CSS LOGO FROM APP */
+        .app-logo-container {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 50px rgba(30, 58, 138, 0.5);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            margin: 0 auto 30px auto;
+        }
+
+        .app-logo-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 80px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* SCREENSHOT FRAMES */
+        .screenshot-frame {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 85%;
+            margin: 0 auto;
+            transition: transform 0.5s;
+        }
+
+        .screenshot-frame:hover {
+            transform: scale(1.02);
+            border-color: var(--brand-blue);
+        }
+
+        .screenshot-img {
+            border-radius: 8px;
+            width: 100%;
+            display: block;
+        }
+
+        .feature-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon {
+            color: var(--brand-blue);
+            margin-right: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        /* AZI BADGE */
+        .azi-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 20px;
+            font-family: 'Orbitron';
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- 1. COVER -->
+            <section data-background-color="#020617">
+                <div class="app-logo-container">
+                    <span class="app-logo-text">A</span>
+                </div>
+                <h1 style="color: var(--brand-blue); font-size: 2.5em; text-shadow: 0 0 20px rgba(59,130,246,0.5);">
+                    ALPHA CRAFT STOCK</h1>
+                <h3 style="font-size: 1.2em; font-weight: 300; opacity: 0.8;">OTONOM STOK & ENVANTER YÖNETİMİ</h3>
+                <div style="margin-top: 50px; font-size: 0.8em; color: #64748b;">v2.0 STABLE</div>
+            </section>
+
+            <!-- 2. THE PROBLEM -->
+            <section>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 50px;">
+                    <div style="text-align: left; flex: 1;">
+                        <h2 style="color: #ef4444; font-size: 1.5em;">GİZLİ MALİYETLER</h2>
+                        <div class="feature-box" style="border-left: 5px solid #ef4444;">
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Excel hataları %20 maliyet
+                                kaybına yol açar.</p>
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Standart dışı üretim, kâr
+                                marjını eritir.</p>
+                            <p><i class="fa-solid fa-xmark" style="color: #ef4444;"></i> Hırsızlık ve fire, manuel
+                                sistemde tespit edilemez.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. SOLUTION: DASHBOARD -->
+            <section>
+                <h2 style="font-size: 1.2em; margin-bottom: 10px;">OPERASYONEL KULE</h2>
+                <div class="screenshot-frame">
+                    <img src="assets/shot_dashboard_1769101325131.png" class="screenshot-img">
+                </div>
+                <div style="text-align: left; margin-top: 20px; font-size: 0.8em; padding: 0 50px;">
+                    <p>İşletmenizin nabzını tek ekrandan tutun. Ciro, maliyet, kârlılık ve kritik uyarılar anlık olarak
+                        önünüze düşer. Karmaşık raporlar yok, net sonuçlar var.</p>
+                </div>
+            </section>
+
+            <!-- 4. CONTROL: STOCK LIST -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 30px;">
+                    <div style="flex: 1.5;">
+                        <div class="screenshot-frame">
+                            <img src="assets/shot_stock_list_1769101355467.png" class="screenshot-img">
+                        </div>
+                    </div>
+                    <div style="flex: 1; text-align: left;">
+                        <span class="azi-badge"><i class="fa-solid fa-robot"></i> AZI WATCH</span>
+                        <h3 style="color: var(--brand-blue); font-size: 1.2em;">ASLA "YOK" DEMEYİN</h3>
+                        <p style="font-size: 0.8em;">Stoklarınız kritik seviyeye indiğinde sistem sizi uyarır. Müşteriye
+                            ürün yok demeden önce haberiniz olur.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. NEW: SMART RECIPE -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 30px;">
+                    <div style="flex: 1; text-align: left;">
+                        <h3 style="color: #10b981; font-size: 1.2em;">MİLİMETRİK REÇETE</h3>
+                        <p style="font-size: 0.8em;">Her ürünün içine ne kadar fıstık, ne kadar yağ gireceğini sisteme
+                            tanımlayın. Satış yapıldıkça stoktan otomatik düşsün.</p>
+                        <ul style="font-size: 0.7em; margin-top: 20px; color: #94a3b8;">
+                            <li><i class="fa-solid fa-check" style="color: #10b981;"></i> Standart Lezzet</li>
+                            <li><i class="fa-solid fa-check" style="color: #10b981;"></i> Kontrollü Maliyet</li>
+                        </ul>
+                    </div>
+                    <div style="flex: 1.5;">
+                        <div class="screenshot-frame">
+                            <img src="assets/shot_recipe_modal_1769101604267.png" class="screenshot-img">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. NEW: WEEKLY COUNT -->
+            <section>
+                <h2 style="font-size: 1.2em; margin-bottom: 20px;">DİJİTAL SAYIM HAFTASI</h2>
+                <div class="screenshot-frame" style="max-width: 60%;">
+                    <img src="assets/shot_weekly_count_1769101623039.png" class="screenshot-img">
+                </div>
+                <p style="margin-top: 30px; font-size: 0.9em;">
+                    Pazar günü sayımınızı yapın. Sistem, olması gereken ile sayılan arasındaki farkı anında <strong>TL
+                        cinsinden</strong> hesaplasın.
+                </p>
+            </section>
+
+            <!-- 7. AZI INTEGRATION -->
+            <section>
+                <div style="display: flex; align-items: center; gap: 50px;">
+                    <div style="flex: 1;">
+                        <img src="assets/azi_ai_concept_1769095164504.png"
+                            style="width: 100%; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.4)); animation: pulse-eye 6s infinite;">
+                    </div>
+                    <div style="flex: 1.2; text-align: left;">
+                        <div class="glass-card"
+                            style="border-left: 5px solid var(--brand-purple); padding: 30px; background: rgba(139, 92, 246, 0.1);">
+                            <h2
+                                style="color: var(--brand-purple); border: none; margin-bottom: 20px; font-size: 1.8em;">
+                                AZI ENTEGRASYONU</h2>
+                            <p style="font-size: 0.9em; line-height: 1.6; color: #e2e8f0;">
+                                AC Stock, "Aptal" bir veri tabanı değildir. <strong>AZI (Alpha Intelligence)</strong>
+                                ile sürekli konuşur.
+                            </p>
+                            <div style="margin-top: 20px; font-size: 0.8em; color: #cbd5e1;">
+                                <p><strong style="color: var(--brand-purple);">• Tahminleme:</strong> "Gelecek hafta
+                                    Fıstık zammı bekleniyor, stok yapın."</p>
+                                <p><strong style="color: var(--brand-purple);">• Anomali Tespiti:</strong> "Pazartesi
+                                    günleri normalden %30 daha fazla şeker kayboluyor. Kontrol edin."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. ANALYSIS SUMMARY -->
+            <section>
+                <h2 style="font-size: 1.2em; margin-bottom: 20px;">SONUÇ: TAM KONTROL</h2>
+                <div class="screenshot-frame" style="max-width: 70%;">
+                    <img src="assets/shot_analysis_1769101380681.png" class="screenshot-img">
+                </div>
+                <div style="margin-top: 30px; display: flex; justify-content: center; gap: 30px;">
+                    <span style="color: #ef4444;"><i class="fa-solid fa-arrow-down"></i> %40 Fire Azalması</span>
+                    <span style="color: #10b981;"><i class="fa-solid fa-arrow-up"></i> %25 Kârlılık Artışı</span>
+                </div>
+            </section>
+
+            <!-- 9. NEW: COMPARISON (CLASSIC VS ALPHA) -->
+            <section>
+                <h2 style="font-size: 1.5em; margin-bottom: 40px;">NEDEN ALPHA CRAFT?</h2>
+                <div style="display: flex; gap: 40px; justify-content: center;">
+                    <!-- LEFT: CLASSIC -->
+                    <div
+                        style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 25px;">
+                        <h4 style="color: #ef4444; font-size: 1em; margin-bottom: 20px;"><i
+                                class="fa-solid fa-file-excel"></i> DİĞERLERİ</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.8em; text-align: left; opacity: 0.8;">
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-xmark"
+                                    style="color: #ef4444; width: 20px;"></i> Manuel Veri Girişi</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-xmark"
+                                    style="color: #ef4444; width: 20px;"></i> Sadece Depo Sayar</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-xmark"
+                                    style="color: #ef4444; width: 20px;"></i> Pasif Raporlama</li>
+                            <li><i class="fa-solid fa-xmark" style="color: #ef4444; width: 20px;"></i> Excel'e Bağımlı
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- RIGHT: ALPHA -->
+                    <div
+                        style="flex: 1; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 12px; padding: 25px; transform: scale(1.05); box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);">
+                        <h4 style="color: #10b981; font-size: 1.1em; margin-bottom: 20px;"><i
+                                class="fa-solid fa-rocket"></i> ALPHA CRAFT</h4>
+                        <ul style="list-style: none; padding: 0; font-size: 0.8em; text-align: left; color: #fff;">
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-check"
+                                    style="color: #10b981; width: 20px;"></i> Otonom Stok Düşümü</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-check"
+                                    style="color: #10b981; width: 20px;"></i> Canlı Ciro Takibi</li>
+                            <li style="margin-bottom: 15px;"><i class="fa-solid fa-check"
+                                    style="color: #10b981; width: 20px;"></i> <strong>AZI</strong> ile Anlık Uyarı</li>
+                            <li><i class="fa-solid fa-check" style="color: #10b981; width: 20px;"></i> %100 Dijital</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10. NEW: PROFIT IMPACT (GRAPH) -->
+            <section>
+                <h2 style="font-size: 1.5em; margin-bottom: 10px;">ORTALAMA KÂR ETKİSİ</h2>
+                <p style="font-size: 0.8em; color: #94a3b8; margin-bottom: 40px;">Alpha Craft kullanan işletmelerin ilk
+                    6 aydaki değişimi</p>
+
+                <div
+                    style="display: flex; align-items: flex-end; justify-content: center; height: 300px; gap: 40px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <!-- BAR 1 -->
+                    <div style="text-align: center;">
+                        <div
+                            style="height: 150px; width: 80px; background: rgba(255,255,255,0.1); border-radius: 8px 8px 0 0; margin: 0 auto; position: relative;">
+                            <span
+                                style="position: absolute; top: -25px; left: 0; width: 100%; font-weight: bold; font-size: 0.8em;">%10</span>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 0.7em;">BAŞLANGIÇ</div>
+                    </div>
+                    <!-- BAR 2 -->
+                    <div style="text-align: center;">
+                        <div
+                            style="height: 190px; width: 80px; background: linear-gradient(to top, var(--brand-blue), #60a5fa); border-radius: 8px 8px 0 0; margin: 0 auto; position: relative; opacity: 0.6;">
+                            <span
+                                style="position: absolute; top: -25px; left: 0; width: 100%; font-weight: bold; font-size: 0.8em;">%18</span>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 0.7em;">3. AY</div>
+                    </div>
+                    <!-- BAR 3 -->
+                    <div style="text-align: center;">
+                        <div
+                            style="height: 280px; width: 80px; background: linear-gradient(to top, #10b981, #34d399); border-radius: 8px 8px 0 0; margin: 0 auto; position: relative; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                            <span
+                                style="position: absolute; top: -35px; left: 0; width: 100%; font-weight: bold; font-size: 1em; color: #10b981;">%28</span>
+                        </div>
+                        <div style="margin-top: 15px; font-size: 0.7em; font-weight: bold; color: #10b981;">6. AY</div>
+                    </div>
+                </div>
+                <div
+                    style="margin-top: 30px; font-size: 0.9em; background: rgba(16, 185, 129, 0.1); display: inline-block; padding: 10px 20px; border-radius: 20px; color: #10b981;">
+                    <i class="fa-solid fa-arrow-trend-up"></i> Toplamda <strong>2.8x</strong> Kâr Artışı
+                </div>
+            </section>
+
+            <!-- 11. CTA (RESIZED & FIXED - COMPACT) -->
+            <section data-background-color="#0f172a">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <div class="app-logo-container" style="transform: scale(0.6); margin-bottom: 20px;">
+                        <span class="app-logo-text">A</span>
+                    </div>
+
+                    <h2 style="margin-bottom: 30px; font-size: 1.6em;">İŞLETMENİZİ GELECEĞE TAŞIYIN</h2>
+
+                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 40px;">
+                        <div class="feature-box" style="width: 160px; text-align: center; padding: 15px;">
+                            <i class="fa-solid fa-cloud-arrow-down"
+                                style="font-size: 1.5em; color: var(--brand-blue); margin-bottom: 10px;"></i>
+                            <br><span style="font-size: 0.8em;">Hızlı Kurulum</span>
+                        </div>
+                        <div class="feature-box" style="width: 160px; text-align: center; padding: 15px;">
+                            <i class="fa-solid fa-shield-halved"
+                                style="font-size: 1.5em; color: #10b981; margin-bottom: 10px;"></i>
+                            <br><span style="font-size: 0.8em;">Güvenli Yedek</span>
+                        </div>
+                    </div>
+
+                    <a href="#"
+                        style="background: var(--brand-blue); color: white; padding: 12px 30px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 1em;">
+                        DEMO BAŞLAT
+                    </a>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            width: 1280,
+            height: 720,
+            margin: 0.05,
+            transition: 'convex',
+            backgroundTransition: 'fade'
+        });
+    </script>
+</body>
+
+</html>

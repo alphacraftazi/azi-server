@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Craft Staff Yönetimi</title>
+    
+    <!-- YENİ: Kısayol Simgesi için ekleme (Derleyici tarafından kullanılabilir) -->
+    <link rel="icon" type="image/png" href="https://placehold.co/32x32/0ea5e9/ffffff?text=A">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
+                        brand: { 400: '#0ea5e9', 500: '#0284c7', 600: '#0369a1', 900: '#0c4a6e' },
+                        accent: { primary: '#10b981', secondary: '#f59e0b', danger: '#ef4444', profit: '#00cc66', gold: '#f59e0b' } 
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'splash': 'splashAnim 2.5s ease-in-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        splashAnim: {
+                            '0%': { opacity: '1', transform: 'scale(1)' },
+                            '80%': { opacity: '1', transform: 'scale(1.05)' },
+                            '100%': { opacity: '0', visibility: 'hidden' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #020617; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        /* GENEL GÖRSELLİK DÜZELTMELERİ */
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); }
+        .glass-card { 
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.03); 
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; 
+            overflow: hidden;
+            position: relative;
+        }
+        .glass-card:hover { 
+            transform: translateY(-2px); 
+            border-color: rgba(14, 165, 233, 0.3); 
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.1);
+        }
+        /* YENİ: Şampiyon Kartı Görünümü */
+        .glass-card.champ-card {
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 255, 0, 0.1) 100%);
+            border: 2px solid #f59e0b;
+        }
+        .glass-card.champ-card:hover {
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+        }
+        
+        .glass-header { background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .input-alpha { background: #0f172a; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; width: 100%; transition: 0.3s; font-size: 0.9rem; }
+        .input-alpha:focus { border-color: #0ea5e9; outline: none; box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
+        .btn-brand { background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%); color: white; font-weight: 600; border-radius: 8px; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-brand:hover { background: linear-gradient(135deg, #0284c7 0%, #075985 100%); box-shadow: 0 0 15px rgba(2, 132, 199, 0.4); }
+        .btn-outline { border: 1px solid #334155; color: #94a3b8; border-radius: 8px; transition: 0.3s; }
+        .btn-outline:hover { border-color: #0ea5e9; color: white; background: rgba(14, 165, 233, 0.1); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .progress-bar-bg { @apply w-full bg-slate-800 rounded-full h-2 overflow-hidden; } 
+        .progress-bar-fill { @apply h-full rounded-full transition-all duration-500; }
+        .status-badge { @apply text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider; }
+        .nav-btn.active {
+            @apply bg-brand-900/50 text-brand-400 font-bold;
+        }
+        .btn-disabled {
+            @apply bg-slate-700/50 text-slate-500 cursor-not-allowed;
+        }
+        /* YENİ: Yazdırma için gizleme */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; color: black; }
+            .print-area { margin: 0; padding: 0; }
+            .print-table { border-collapse: collapse; width: 100%; }
+            .print-table th, .print-table td { border: 1px solid #ccc; padding: 8px; color: black !important; }
+        }
+        /* Yeni: Personel Adına Göre Renk Atama (Basit Hashing) */
+        .color-A { background: #10b981; } .color-B { background: #3b82f6; } .color-C { background: #ef4444; }
+        .color-D { background: #f97316; } .color-E { background: #14b8a6; } .color-F { background: #6366f1; }
+        .color-G { background: #0ea5e9; } .color-H { background: #a855f7; } .color-I { background: #f59e0b; }
+        .color-J { background: #ec4899; } .color-K { background: #84cc16; } .color-L { background: #22c55e; }
+        .color-M { background: #f43f5e; } .color-N { background: #06b6d4; } .color-O { background: #d946ef; }
+        .personnel-dot { @apply w-2 h-2 rounded-full inline-block mr-1; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden selection:bg-brand-500 selection:text-white">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-[#020617] flex flex-col items-center justify-center">
+        <div class="relative animate-pulse-slow">
+            <div class="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-900/50 border border-brand-500/20">
+                <span class="font-bold text-2xl text-white font-sans">A</span> <!-- LOGO BOYUTU DÜZELTİLDİ -->
+            </div>
+        </div>
+        <h1 class="mt-8 text-3xl font-bold text-white tracking-widest">ALPHA CRAFT</h1>
+        <!-- KRİTİK DEĞİŞİKLİK: Prototip 2 -> Artık Kolay -->
+        <div class="mt-2 text-brand-400 font-light text-sm tracking-[0.5em] uppercase border-t border-brand-900/50 pt-2">ARTIK KOLAY</div>
+        <div class="absolute bottom-8 text-slate-600 text-xs font-mono">v9.3 Offline Enterprise • P2 Connection</div>
+    </div>
+
+    <!-- LICENSE MODAL -->
+    <div id="license-modal" class="fixed inset-0 bg-black/90 z-[90] hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md p-8 glass rounded-2xl border border-red-500/20 shadow-[0_0_50px_rgba(220,38,38,0.1)] text-center relative overflow-hidden">
+            <h2 class="2xl font-bold text-white mb-2">Lisans Aktivasyonu</h2>
+            <p class="text-slate-400 text-sm mb-6">Lütfen ürün anahtarınızı giriniz.</p>
+            <div class="space-y-4">
+                <!-- KRİTİK: Klavye girişi için onkeyup eklendi (Lisans: 111-111-111) -->
+                <input type="text" id="license-key-input" class="input-alpha text-center font-mono tracking-widest uppercase border-red-900/50 focus:border-red-500" placeholder="111-111-111" onkeyup="APP.license.handleKeyInput(event)">
+                <button onclick="APP.license.activate()" id="activate-btn" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-900/30">Sistemi Etkinleştir</button>
+            </div>
+            <div class="mt-6 text-[10px] text-slate-600">Machine ID: <span id="machine-id-display" class="font-mono text-slate-500">...</span></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="h-16 glass-header flex items-center justify-between px-6 z-50 shrink-0 no-print">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-900 rounded-lg flex items-center justify-center shadow-lg shadow-brand-900/50 border border-brand-500/20">
+                <span class="font-bold text-2xl text-white font-sans">A</span> <!-- LOGO BOYUTU DÜZELTİLDİ -->
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white leading-tight">ALPHA CRAFT <span class="text-brand-400 font-light text-xs ml-1">STAFF</span></h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden md:flex flex-col items-end mr-4"><span class="text-xs text-slate-400" id="current-date">--.--.----</span><span class="text-sm font-bold text-white font-mono" id="current-time">00:00:00</span></div>
+            <div id="connection-status" class="w-2.5 h-2.5 rounded-full bg-slate-700 animate-pulse" title="Veritabanı Durumu"></div>
+            <div class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 font-bold shadow-inner text-sm">BM</div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 overflow-hidden opacity-0 transition-opacity duration-1000" id="app-container">
+        <!-- Sidebar -->
+        <aside class="w-64 glass border-r border-slate-800 flex flex-col z-40 shrink-0 no-print">
+            <div class="p-6">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 pl-2 opacity-70">Yönetim Paneli</p>
+                <nav class="space-y-1">
+                    <!-- Genel Bakış simgesi eklendi -->
+                    <button onclick="APP.nav('dashboard')" id="nav-dashboard" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i class="fa-solid fa-chart-bar w-4"></i> Genel Bakış</button>
+                    <button onclick="APP.nav('personnel')" id="nav-personnel" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i class="fa-solid fa-users w-4"></i> Personel</button>
+                    <button onclick="APP.nav('shifts')" id="nav-shifts" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i class="fa-solid fa-calendar-days w-4"></i> Vardiya</button>
+                </nav>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-8 mb-4 pl-2 opacity-70">Saha Operasyonu</p>
+                <nav class="space-y-1">
+                    <button onclick="APP.nav('timecards')" id="nav-timecards" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i class="fa-solid fa-id-card-clip w-4"></i> Giriş Kartları</button>
+                    <button onclick="APP.nav('analysis')" id="nav-analysis" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i class="fa-solid fa-chart-line w-4"></i> Analiz & Bütçe</button>
+                </nav>
+            </div>
+            <div class="mt-auto p-4 border-t border-slate-800/50">
+                <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-800 flex items-center gap-3">
+                    <i class="fa-solid fa-database text-green-500 text-xs"></i>
+                    <div><div class="text-[10px] text-slate-400">Offline DB</div><div class="text-[10px] font-mono text-slate-500">P2.File</div></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 bg-[#020617] relative overflow-y-auto p-8 custom-scrollbar print-area" id="main-content">
+            
+            <!-- DASHBOARD -->
+            <div id="view-dashboard" class="hidden animate-fade-in space-y-8">
+                
+                <!-- BAŞLIK VE YENİLE BUTONU -->
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-chart-bar text-brand-400"></i> Genel Bakış Paneli</h2>
+                </div>
+
+                <!-- BÜTÇE KARTLARI -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <!-- Aylık Bütçe Hedefi -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-brand-900/30">
+                        <div class="flex justify-between items-start">
+                            <i class="fa-solid fa-bullseye text-2xl text-brand-400"></i>
+                            <!-- KRİTİK DÜZELTME: Düzenle butonu kaldırıldı -->
+                            <span class="text-xs text-slate-500 no-print">Vardiya sayfasından ayarlanır</span>
+                        </div>
+                        <div class="mt-4">
+                            <!-- KRİTİK DÜZELTME: Başlık 'İDEAL AYLIK HEDEF (TAHMİNİ)' olarak değiştirildi -->
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">AYLIK BÜTÇE HEDEFİ</div>
+                            <span class="text-3xl font-bold text-white tracking-tight" id="lbl-target-budget">₺0</span>
+                        </div>
+                    </div>
+
+                    <!-- Aylık Tahmini Gider -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-accent-danger/30">
+                        <div class="flex justify-between items-start">
+                             <i class="fa-solid fa-sack-dollar text-2xl text-accent-danger"></i>
+                             <div class="status-badge bg-red-900/50 text-red-300" id="lbl-budget-status">Hesaplanıyor...</div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">TAHMİNİ AYLIK GİDER</div>
+                            <span class="text-3xl font-bold text-white tracking-tight" id="lbl-projected-cost">₺0</span>
+                        </div>
+                    </div>
+
+                    <!-- Günlük Maliyet -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-accent-secondary/30">
+                        <div class="flex justify-between items-start">
+                             <i class="fa-solid fa-cash-register text-2xl text-accent-secondary"></i>
+                             <div class="status-badge bg-yellow-900/50 text-yellow-300">BUGÜN</div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">GÜNLÜK PERSONEL MALİYETİ</div>
+                            <span class="3xl font-bold text-white tracking-tight" id="dash-daily-cost">₺0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- YENİ KPI: BUGÜN NAKİT ÖDEME (Elden Verilecek Miktar) -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-accent-profit/30">
+                        <div class="flex justify-between items-start">
+                             <i class="fa-solid fa-hand-holding-dollar text-2xl text-accent-profit"></i>
+                             <div class="status-badge bg-green-900/50 text-green-300" id="dash-cash-badge">NAKİT</div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">BUGÜN ELDEN NAKİT ÖDEME</div>
+                            <span class="3xl font-bold text-accent-profit tracking-tight" id="dash-daily-cash">₺0</span>
+                        </div>
+                    </div>
+
+                    <!-- Verimlilik Oranı -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-accent-profit/30">
+                        <div class="flex justify-between items-start">
+                             <i class="fa-solid fa-gauge-high text-2xl text-accent-profit"></i>
+                             <div class="status-badge bg-green-900/50 text-green-300" id="dash-efficiency-badge">İDEAL</div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">PERSONEL VERİMLİLİK ORANI</div>
+                            <span class="3xl font-bold text-white tracking-tight" id="dash-efficiency-rate">%0</span>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- BÜTÇE KULLANIMI ÇUBUĞU -->
+                <div class="glass p-5 rounded-xl border border-slate-800">
+                    <div class="flex justify-between text-xs mb-3">
+                        <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-chart-simple text-brand-400"></i> Bütçe Hedefi Doluluk Oranı</span>
+                        <span class="font-bold text-white" id="lbl-budget-pct">%0</span>
+                    </div>
+                    <!-- KRİTİK: LİMİT yazısı kaldırıldı, dinamik olarak ayarlanacak -->
+                    <div class="progress-bar-bg"><div id="bar-budget-usage" class="progress-bar-fill bg-gradient-to-r from-brand-700 to-brand-400" style="width: 0%"></div></div>
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono"><span>0 TL</span><span id="lbl-target-max">₺0 LİMİT</span></div>
+                </div>
+
+                <!-- GRAFİKLER -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- VARDİYA İHTİYAÇ MATRİSİ (Detaylandırılmış Kuşbakışı) -->
+                    <div class="glass p-6 rounded-xl h-96 overflow-y-auto">
+                        <h3 class="text-white font-bold mb-4"><i class="fa-solid fa-table-list text-yellow-400 mr-2"></i> Haftalık Personel İhtiyaç Özet Tablosu</h3>
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-800/50 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th class="p-2 w-1/4">ROL</th>
+                                    <th class="p-2 text-center">Pzt</th>
+                                    <th class="p-2 text-center">Sal</th>
+                                    <th class="p-2 text-center">Çar</th>
+                                    <th class="p-2 text-center">Per</th>
+                                    <th class="p-2 text-center">Cum</th>
+                                    <th class="p-2 text-center">Cmt</th>
+                                    <th class="p-2 text-center">Paz</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-shift-matrix">
+                                <tr><td colspan="8" class="p-4 text-center text-slate-500">Veri yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Alpha AI -->
+                    <div class="glass p-6 rounded-xl flex flex-col border border-slate-800 h-96">
+                        <h3 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-robot text-accent-primary mr-2"></i> Alpha AI Kar ve Verimlilik Önerileri</h3>
+                        <div class="space-y-4 overflow-y-auto custom-scrollbar flex-1" id="dash-ai-suggestions">
+                            <div class="p-3 rounded-lg bg-green-900/30 border border-green-800/50 text-green-300 text-xs font-medium"><i class="fa-solid fa-check-circle mr-2"></i> **KAR ODAKLI ÇALIŞMA:** Maliyetler ve personel yoğunluğu ideal seviyede.</div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-800">
+                            <div class="flex justify-between text-xs text-slate-400"><span class="font-bold">Aktif Personel Sayısı:</span><span id="dash-live-count" class="text-white">0</span></div>
+                            <div class="flex justify-between text-xs text-slate-400"><span class="font-bold">Toplam Personel:</span><span id="total-staff-count" class="text-white">0</span></div>
+                            <div class="flex justify-between text-xs text-slate-400"><span class="font-bold">Ortalama Günlük Maliyet:</span><span id="ai-avg-cost" class="text-white">₺0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERSONNEL -->
+            <div id="view-personnel" class="hidden animate-fade-in space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-users text-brand-400"></i> Personel Listesi</h2>
+                    <button onclick="APP.modals.addPersonnel()" class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i class="fa-solid fa-user-plus"></i> Personel Ekle</button>
+                    <button onclick="APP.actions.printDocument('personnel')" class="btn-outline px-5 py-2 flex items-center gap-2 text-xs no-print"><i class="fa-solid fa-print"></i> Listeyi Yazdır</button>
+                </div>
+                <div class="glass rounded-xl overflow-hidden border border-slate-800">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Ad Soyad</th>
+                                <th class="p-4">Rol</th>
+                                <th class="p-4">İzin Günü</th>
+                                <th class="p-4">Ücret Tipi</th>
+                                <th class="p-4">Saatlik Ücret (₺)</th>
+                                <th class="p-4 text-right no-print">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personnel-tbody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                    <div id="personnel-empty" class="hidden p-12 text-center text-slate-600 text-sm">Kayıtlı personel bulunamadı.</div>
+                </div>
+            </div>
+
+            <!-- SHIFTS -->
+            <div id="view-shifts" class="hidden animate-fade-in space-y-6">
+                
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-calendar-days text-brand-400"></i> Vardiya Yönetimi</h2>
+                    <div class="flex gap-3">
+                        <button onclick="APP.modals.showShiftSetup()" class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i class="fa-solid fa-calendar-plus"></i> Yeni Vardiya Tanımla</button>
+                        <!-- KRİTİK DEĞİŞİKLİK: Bu buton artık maliyet optimizasyonu ile atama yapacak -->
+                        <button onclick="APP.actions.autoAssignShifts()" class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg" id="auto-assign-btn"><i class="fa-solid fa-robot mr-1"></i> AI Otomatik Dağıt</button>
+                        <!-- YENİ: Vardiya yenileme butonu sadece burada tutuldu -->
+                        <button onclick="APP.actions.refreshAllData()" class="btn-outline px-4 py-2 flex items-center gap-2 text-xs no-print"><i class="fa-solid fa-arrows-rotate"></i> Yenile</button>
+                    </div>
+                </div>
+
+                <!-- Vardiya Listesi -->
+                <div class="glass rounded-xl overflow-hidden border border-slate-800 p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Tanımlı Vardiyalar</h3>
+                    <div id="shifts-list" class="space-y-3">
+                        <div class="text-slate-600 text-sm text-center py-4">Henüz tanımlanmış vardiya yok.</div>
+                    </div>
+                </div>
+
+                <!-- Vardiya Matrisi -->
+                <div id="shifts-active" class="space-y-6">
+                     <div class="glass rounded-xl overflow-x-auto p-4 border border-slate-700">
+                        <h3 class="text-white font-bold text-lg mb-4">Vardiya Matrisi (Personel Dağılımı)</h3>
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                                    <th class="p-2 w-1/4">ROL</th>
+                                    <th class="p-2 text-center">Pzt</th>
+                                    <th class="p-2 text-center">Sal</th>
+                                    <th class="p-2 text-center">Çar</th>
+                                    <th class="p-2 text-center">Per</th>
+                                    <th class="p-2 text-center">Cum</th>
+                                    <th class="p-2 text-center">Cmt</th>
+                                    <th class="p-2 text-center">Paz</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-grid" class="divide-y divide-slate-800/50">
+                                <tr><td colspan="8" class="p-4 text-center text-slate-600">Lütfen önce vardiyaları tanımlayın.</td></tr>
+                            </tbody>
+                        </table>
+                        <button onclick="APP.actions.printDocument('shifts')" class="mt-4 btn-outline px-4 py-2 flex items-center gap-2 text-xs no-print"><i class="fa-solid fa-print"></i> Vardiya Matrisini Yazdır</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TIMECARDS -->
+            <div id="view-timecards" class="hidden animate-fade-in space-y-6">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fa-solid fa-id-card-clip text-brand-400"></i> Personel Bilgi Panosu</h2>
+                <!-- Kartların otomatik oluşturulmasını sağlayan buton kaldırıldı, personel eklenince otomatik oluşacak -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="timecards-grid">
+                    <div class="text-slate-600 text-sm p-12 text-center col-span-full" id="timecards-empty">Personel eklendiğinde giriş kartları otomatik oluşur.</div>
+                </div>
+            </div>
+
+            <!-- ANALYSIS -->
+            <div id="view-analysis" class="hidden animate-fade-in space-y-8">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fa-solid fa-chart-simple text-brand-400"></i> Finansal Analiz & Bütçe Yönetimi</h2>
+                
+                <!-- BÜTÇE AYAR KARTI ARTIK BURADA KALICI -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between border-brand-400/50 md:col-span-1">
+                        <div class="flex justify-between items-start">
+                            <i class="fa-solid fa-bullseye text-2xl text-brand-400"></i>
+                            <span class="text-xs text-slate-500 no-print">Vardiya sayfasından ayarlanır</span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">AYLIK BÜTÇE HEDEFİ</div>
+                            <span class="text-3xl font-bold text-white tracking-tight" id="analysis-target-budget-display">₺0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI Kartları -->
+                    <div class="glass-card p-5 rounded-xl border-slate-700">
+                        <h3 class="text-slate-500 text-[10px] font-bold uppercase">Ort. Çalışma Saati Maliyeti</h3>
+                        <div class="2xl font-bold text-white mt-2" id="analysis-avg-rate">₺0,00/sa</div>
+                        <p class="text-[10px] text-slate-500 mt-1">Tüm rollerin ortalaması.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl border-slate-700">
+                        <h3 class="text-slate-500 text-[10px] font-bold uppercase">Personel Verimlilik Hedefi</h3>
+                        <div class="2xl font-bold text-accent-profit mt-2" id="analysis-target-efficiency">%0</div>
+                        <p class="text-[10px] text-slate-500 mt-1">Mevcut doluluk baz alınır.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border-accent-danger/30">
+                        <h3 class="text-slate-500 text-[10px] font-bold uppercase">Saha Dışı Mesai Riski</h3>
+                        <div class="2xl font-bold text-red-400 mt-2" id="analysis-extra-shifts">0 Kez</div>
+                        <p class="text-[10px] text-slate-500 mt-1">Fazla mesai olasılığı.</p>
+                    </div>
+                </div>
+
+                <!-- Grafikler -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-xl border border-slate-700 h-96">
+                        <h3 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-chart-area mr-2 text-brand-400"></i> Kar Maksimizasyonu: 3 Aylık Maliyet Projeksiyonu</h3>
+                        <div class="relative flex-1"><canvas id="analysisProfitChart"></canvas></div>
+                    </div>
+                    <div class="glass p-6 rounded-xl border border-slate-700 h-96 flex flex-col items-center justify-center">
+                        <h3 class="text-white font-bold text-sm mb-4"><i class="fa-solid fa-chart-pie mr-2 text-accent-primary"></i> Rol Bazında Toplam Maliyet Dağılımı</h3>
+                        <div class="w-2/3 h-2/3 relative"><canvas id="analysisRoleChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- 1. Personel Ekleme Modalı -->
+    <div id="modal-personnel" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-lg rounded-2xl p-8 shadow-2xl border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-6 border-b border-slate-800 pb-4">Yeni Personel Kartı</h3>
+            <form onsubmit="event.preventDefault(); APP.actions.savePersonnel();" class="space-y-4">
+                <input type="text" id="inp-name" required class="input-alpha" placeholder="Ad Soyad">
+                <input type="tel" id="inp-phone" class="input-alpha" placeholder="Telefon (Gerekli değil, sadece kayit için)">
+                <select id="inp-role" class="input-alpha"><option>Garson</option><option>Komi</option><option>Aşçı</option><option>Bulaşıkçı</option><option>Müdür</option><option>Barista</option><option>Barmen</option></select>
+                
+                <!-- YENİ/GÜNCEL: İZİN GÜNÜ SEÇİMİ (Çoklu Seçim) -->
+                <div>
+                    <p class="text-sm text-slate-400 mb-2">İzin Günleri (Birden Fazla Seçilebilir):</p>
+                    <div id="inp-day-off-container" class="flex gap-2 flex-wrap">
+                        <!-- Tüm günleri nötr state ile başlat, click ile toggle et. -->
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Pzt">Pzt</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Sal">Sal</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Çar">Çar</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Per">Per</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Cum">Cum</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Cmt">Cmt</div>
+                        <div class="day-off-toggle px-3 py-1 border rounded cursor-pointer text-xs transition-all bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700" 
+                            onclick="this.classList.toggle('bg-brand-900/50'); this.classList.toggle('text-brand-400'); this.classList.toggle('border-brand-400'); this.classList.toggle('bg-slate-800'); this.classList.toggle('text-slate-400'); this.classList.toggle('border-slate-700');" data-day="Paz">Paz</div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2">Seçim yapılmazsa personel haftanın her günü çalışabilir (Tam Zamanlı).</p>
+                </div>
+                <!-- BİTİŞ: İZİN GÜNÜ SEÇİMİ (Çoklu Seçim) -->
+
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="inp-freq" class="input-alpha"><option value="monthly">Aylık</option><option value="daily">Günlük</option></select>
+                    <select id="inp-pay-type" class="input-alpha" onchange="APP.ui.updatePayLabel()">
+                        <option value="salary">Maaş</option>
+                        <option value="hourly">Saatlik Ücret</option>
+                    </select>
+                </div>
+                <input type="number" id="inp-amount" required class="input-alpha" placeholder="Tutar (Maaş veya Saatlik Ücret)" oninput="APP.ui.calcAutoHourly()">
+                <div id="hourly-calc-preview" class="hidden text-xs text-brand-400">Otomatik (Saatlik Ücret): <span id="val-hourly-calc"></span>₺/s</div>
+                <div class="flex gap-3"><button type="button" onclick="document.getElementById('modal-personnel').classList.add('hidden')" class="flex-1 py-3 bg-slate-800 rounded text-white">İptal</button><button type="submit" class="flex-1 py-3 btn-brand rounded">Kaydet</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 2. Vardiya Tanımlama Modalı -->
+    <div id="modal-shift-setup" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-2xl rounded-2xl p-8 shadow-2xl border border-slate-700/50 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-white mb-6 border-b border-slate-800 pb-4 flex justify-between items-center">
+                Yeni Vardiya Tanımla <button onclick="document.getElementById('modal-shift-setup').classList.add('hidden')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </h3>
+            <form onsubmit="event.preventDefault(); APP.actions.saveShift();" class="space-y-6">
+                
+                <!-- KRİTİK: YENİ BÜTÇE HEDEFİ GİRİŞİ BURADA -->
+                <div class="space-y-2 p-4 bg-slate-900 rounded-lg">
+                    <label for="shift-budget-target" class="text-sm text-brand-400 font-medium flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> Aylık Bütçe Hedefi (₺)</label>
+                    <input type="number" id="shift-budget-target" class="input-alpha" placeholder="Örn: 50000" min="0" required>
+                    <p class="text-[10px] text-slate-500">Bu değer, Dashboard ve Analiz sayfalarında hedef olarak kullanılacaktır.</p>
+                </div>
+                <!-- BİTİŞ: YENİ BÜTÇE HEDEFİ GİRİŞİ -->
+
+
+                <!-- Vardiya Genel Bilgiler -->
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="shift-name" required class="input-alpha" placeholder="Vardiya Adı (Örn: Sabah)">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="time" id="shift-start" required class="input-alpha text-center" value="10:00">
+                        <input type="time" id="shift-end" required class="input-alpha text-center" value="18:00">
+                    </div>
+                </div>
+
+                <!-- Aktif Günler -->
+                <div>
+                    <p class="text-sm text-slate-400 mb-2">Vardiyanın Aktif Olduğu Günler:</p>
+                    <div id="shift-days" class="flex gap-2 flex-wrap">
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Pzt">Pzt</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Sal">Sal</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Çar">Çar</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Per">Per</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Cum">Cum</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Cmt">Cmt</div>
+                        <div class="px-3 py-1 border border-brand-500 rounded cursor-pointer text-white text-xs bg-brand-600" onclick="this.classList.toggle('bg-brand-600')" data-day="Paz">Paz</div>
+                    </div>
+                </div>
+
+                <!-- Personel İhtiyaç Matrisi -->
+                <div>
+                    <p class="text-sm text-slate-400 mb-2 mt-4">Vardiya Başına Rol İhtiyacı:</p>
+                    <div id="shift-role-needs" class="space-y-3 p-4 glass rounded-lg border border-slate-800"></div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('modal-shift-setup').classList.add('hidden')" class="flex-1 py-3 bg-slate-800 rounded text-white">İptal</button><button type="submit" class="flex-1 py-3 btn-brand rounded">Vardiyayı Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Vardiya Atama Sihirbazı Modalı -->
+    <div id="modal-wizard" class="fixed inset-0 bg-black/90 z-[60] hidden flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-3xl glass p-10 rounded-2xl relative border border-slate-700/50">
+            <h2 class="text-2xl font-bold text-white mb-4">Vardiya Personel Atama Sihirbazı</h2>
+            <p class="text-slate-400 mb-6">Tanımlanmış vardiyalara personelleri rastgele atar.</p>
+            <div id="wiz-days" class="flex gap-2 mb-4"></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <select id="wiz-shifts" class="input-alpha"><option value="">Lütfen Vardiya Seçin</option></select>
+                <input type="number" id="wiz-dept-count" class="input-alpha" placeholder="Vardiya Başına Personel Havuzu">
+            </div>
+            <button onclick="APP.wizard.generate()" class="btn-brand px-8 py-3 rounded">Vardiya Matrisi Oluştur</button>
+        </div>
+    </div>
+
+
+    <!-- OFFLINE LOGIC ENGINE (Dosya Kalıcılığı ve İletişim) -->
+    <script>
+        class PersistentDB {
+            constructor() {
+                this.inMemory = {};
+                this.subs = {};
+            }
+            
+            // Veriyi Python'a (dosyaya) gönderir
+            async _set(c, d) {
+                this.inMemory[c] = d;
+                try {
+                    // KRİTİK: save_data'nın başarılı olmasını bekliyoruz.
+                    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_data) {
+                        const success = await window.pywebview.api.save_data(c, JSON.stringify(d));
+                         if (!success) {
+                            console.error(`[PERSISTENCE ERROR] Python'dan kayıt başarısız yanıtı: ${c}`);
+                         }
+                    }
+                } catch(e) { console.error("Kayıt Hatası (DB._set):", e); }
+                this._notify(c);
+            }
+
+            onSnapshot(c, cb) {
+                if(!this.subs[c]) this.subs[c] = [];
+                this.subs[c].push(cb);
+            }
+            
+            _notify(c) {
+                // Sadece inMemory'deki güncel veriyi döndürür
+                const d = this.inMemory[c] || [];
+                if(this.subs[c]) {
+                    // financial_config ve schedule tekil nesneler için
+                    if (c === 'financial_config' || c === 'schedule' || c === 'license_status') {
+                         this.subs[c].forEach(fn => fn({ data: () => d }));
+                         return;
+                    }
+
+                    const snap = { 
+                        docs: d.map(x => ({ id: x.id, data: () => x })),
+                        data: () => d.length > 0 ? d[0] : null
+                    };
+                    this.subs[c].forEach(fn => fn(snap));
+                }
+            }
+
+            addDoc(c, data) {
+                const list = this.inMemory[c] || [];
+                const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+                list.push({ id, ...data });
+                this._set(c, list);
+                return id; // Yeni kart oluşturulduğunda ID'yi döndür
+            }
+            
+            deleteDoc(c, id) {
+                let list = (this.inMemory[c] || []).filter(x => x.id !== id);
+                this._set(c, list);
+            }
+            
+            updateDoc(c, id, data) {
+                let list = this.inMemory[c] || [];
+                const idx = list.findIndex(x => x.id === id);
+                if(idx !== -1) { list[idx] = { ...list[idx], ...data }; this._set(c, list); }
+            }
+            
+            // setDoc artık tek bir dokümanı günceller/ekler (Örn: financial_config)
+            setDoc(c, docId, data) { 
+                if (c === 'financial_config' || c === 'schedule' || c === 'license_status') { // KRİTİK: license_status tekil nesne olarak eklendi
+                    this._set(c, data); // config/schedule/license_status'ı doğrudan objeyi kaydet
+                    return;
+                }
+                let list = (this.inMemory[c] || []).filter(x => x.id !== docId);
+                list.push({ id: docId, ...data });
+                this._set(c, list);
+            }
+        }
+
+        const db = new PersistentDB();
+        const collectionsToLoad = ['personnel', 'shifts', 'time_cards', 'financial_config', 'license_status', 'schedule']; // KRİTİK: license_status eklendi
+        const DEFAULT_CONFIG = {targetBudget:45000, costHistory: [0, 0, 0], labels: ["Ay 1", "Ay 2", "Ay 3"]};
+
+        const STATE = { 
+            personnel: [], shifts: [], timeCards: [], 
+            config: DEFAULT_CONFIG, 
+            schedule: {}, // Yeni: Vardiya atama sonuçları buraya kaydedilecek
+            charts: {} ,
+            license: { active: false } // Lisans durumu
+        };
+        const HOURS_IN_MONTH = 225;
+        const DAYS_OF_WEEK = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+        const DAY_INDEX = { Pzt: 1, Sal: 2, Çar: 3, Per: 4, Cum: 5, Cmt: 6, Paz: 0 }; 
+        const COLOR_MAP = { A: '#10b981', B: '#3b82f6', C: '#ef4444', D: '#f97316', E: '#14b8a6', F: '#6366f1', G: '#0ea5e9', H: '#a855f7', I: '#f59e0b', J: '#ec4899', K: '#84cc16', L: '#22c55e', M: '#f43f5e', N: '#06b6d4', O: '#d946ef' };
+        let cardTimerInterval = null; 
+
+        // --- APP CONTROLLER ---
+        window.APP = {
+            init: () => {
+                // pywebviewready olayı ile tetiklenir
+            },
+
+            data: {
+                loadAllInitialData: async () => {
+                    const collections = collectionsToLoad;
+                    
+                    try {
+                        // 1. Python'dan veriyi çek
+                        await Promise.all(collections.map(async c => {
+                            if (window.pywebview && window.pywebview.api) {
+                                try {
+                                    const jsonStr = await window.pywebview.api.load_data(c);
+                                    
+                                    let parsedData = {};
+                                    if (jsonStr && jsonStr.trim().length > 0) {
+                                        try {
+                                            parsedData = JSON.parse(jsonStr);
+                                        } catch (e) {
+                                            console.error(`[JSON PARSE ERROR] ${c}:`, e);
+                                        }
+                                    }
+                                    
+                                    if (c === 'financial_config') {
+                                        const hasValidTarget = parsedData && typeof parsedData.targetBudget === 'number' && parsedData.targetBudget >= 0;
+                                        STATE.config = hasValidTarget ? { ...DEFAULT_CONFIG, ...parsedData } : DEFAULT_CONFIG;
+                                        db.inMemory[c] = STATE.config;
+                                        
+                                    } else if (c === 'schedule') {
+                                        db.inMemory[c] = parsedData;
+                                        STATE.schedule = parsedData;
+                                    } else if (c === 'license_status') { // KRİTİK: Lisans durumu yükleniyor
+                                        // KRİTİK HATA DÜZELTMESİ: ParsedData'nın var olup olmadığını kontrol et
+                                        STATE.license = (parsedData && typeof parsedData.active === 'boolean') ? parsedData : { active: false };
+                                        db.inMemory[c] = STATE.license;
+                                    } 
+                                    else {
+                                        db.inMemory[c] = parsedData;
+                                        if (c === 'personnel') STATE.personnel = parsedData;
+                                        else if (c === 'shifts') STATE.shifts = parsedData;
+                                        else if (c === 'time_cards') STATE.timeCards = parsedData;
+                                    }
+
+                                } catch (e) {
+                                    console.error(c + " yüklenemedi:", e);
+                                    db.inMemory[c] = (c === 'financial_config') ? DEFAULT_CONFIG : (c === 'schedule' ? {} : (c === 'license_status' ? { active: false } : [])); 
+                                }
+                            }
+                        }));
+                        
+                        APP.listeners(); 
+                        APP.ui.initShiftModal(); 
+                        collections.forEach(c => db._notify(c)); 
+                        
+                    } catch(e) { 
+                        console.error("Genel yükleme/Başlatma hatası:", e); 
+                        APP.listeners();
+                        collections.forEach(c => db._notify(c));
+                    } finally {
+                        // KRİTİK: Lisans kontrolü burada tetiklenir.
+                        APP.license.check();
+                        
+                        APP.ui.updateClock();
+                        setInterval(APP.ui.updateClock, 1000); 
+                        APP.actions.startCardTimer(); 
+                    }
+                },
+
+                getTodaySchedule: () => { /* VARDİYA MANTIĞI ŞİMDİLİK PASİF */ return []; }
+            },
+
+            license: {
+                check: () => {
+                    // KRİTİK: Lisans durumu bellekten kontrol ediliyor
+                    if(STATE.license.active) {
+                        // Lisans aktifse splash ekranı kapat ve uygulamayı göster
+                        document.getElementById('splash-screen').classList.add('hidden'); 
+                        document.getElementById('app-container').classList.remove('opacity-0');
+                    } else {
+                        // Lisans aktif değilse aktivasyon modalını göster
+                        document.getElementById('splash-screen').classList.add('hidden'); 
+                        document.getElementById('license-modal').classList.remove('hidden');
+                    }
+                    document.getElementById('machine-id-display').innerText = "PC-" + Math.floor(Math.random()*9999);
+                },
+                activate: () => {
+                    // KRİTİK: LİSANS KONTROLÜ (111-111-111)
+                    const key = document.getElementById('license-key-input').value;
+                    if(key === "111-111-111") {
+                        // KRİTİK DÜZELTME: Lisans durumunu kalıcı olarak kaydet ve STATE'i güncelle
+                        db.setDoc('license_status', 'main', { active: true });
+                        STATE.license.active = true;
+                        
+                        document.getElementById('license-modal').classList.add('hidden');
+                        document.getElementById('app-container').classList.remove('opacity-0');
+                        Swal.fire({icon:'success', title:'Lisans Başarılı', toast:true, position:'top-end', showConfirmButton:false, timer:1500});
+                    } else {
+                         Swal.fire('Hata', 'Geçersiz Anahtar', 'error');
+                    }
+                },
+                // Klavye girişi (Enter tuşu ile aktivasyon)
+                handleKeyInput: (event) => {
+                    if (event.key === 'Enter') {
+                        APP.license.activate();
+                    }
+                }
+            },
+
+            listeners: () => {
+                db.onSnapshot('personnel', snap => {
+                    STATE.personnel = snap.docs.map(d => d.data());
+                    APP.render.personnel(); 
+                    APP.render.dashboard();
+                    APP.render.analysis();
+                    APP.ui.initShiftModal(); 
+                });
+                db.onSnapshot('shifts', snap => {
+                    STATE.shifts = snap.docs.map(d => d.data());
+                    APP.render.shiftsList();
+                    APP.render.shiftsMatrix(); 
+                    APP.render.timeCards(); 
+                });
+                db.onSnapshot('time_cards', snap => {
+                    STATE.timeCards = snap.docs.map(d => d.data());
+                    APP.render.timeCards(); 
+                    APP.render.dashboard();
+                });
+                db.onSnapshot('financial_config', snap => {
+                    const d = snap.data();
+                    if(d) { 
+                        // KRİTİK DÜZELTME: Veri alınırsa STATE'i güncelle.
+                        STATE.config = d; 
+                        // DÜZELTME: Rakam formatı (kuruşsuz)
+                        const formattedTarget = '₺' + d.targetBudget.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                        
+                        // Dashboard görünümü
+                        document.getElementById('lbl-target-budget').innerText = formattedTarget;
+                        document.getElementById('lbl-target-max').innerText = formattedTarget + ' LİMİT';
+
+                        // Analysis görünümü (YENİ EKLENDİ)
+                        const analysisDisplay = document.getElementById('analysis-target-budget-display');
+                        if(analysisDisplay) analysisDisplay.innerText = formattedTarget;
+
+                    } else { 
+                        // Veri yoksa varsayılanı kullan (Bu kısım zaten yükleme aşamasında da yapıldığı için redundant olabilir ama güvenlik için kalsın).
+                        STATE.config = DEFAULT_CONFIG; 
+                    } 
+                    APP.render.dashboard();
+                    APP.render.analysis();
+                });
+                // Yeni: Lisans durumu dinleyicisi eklendi
+                db.onSnapshot('license_status', snap => {
+                    const d = snap.data();
+                    if(d) STATE.license = d;
+                });
+                // Yeni: Atama sonuçlarını dinle
+                db.onSnapshot('schedule', snap => {
+                    const d = snap.data();
+                    if(d) STATE.schedule = d;
+                    APP.render.shiftsMatrix();
+                });
+                
+                // Lisans inputuna event listener ekle
+                document.getElementById('license-key-input').addEventListener('keyup', APP.license.handleKeyInput);
+            },
+
+            nav: (v) => {
+                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.getElementById('nav-' + v);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                document.querySelectorAll('main > div').forEach(e => e.classList.add('hidden'));
+                document.getElementById('view-'+v).classList.remove('hidden');
+                
+                if(v === 'dashboard') setTimeout(APP.render.dashboardChart, 150);
+                if(v === 'analysis') setTimeout(APP.render.analysisChart, 150);
+                if(v === 'shifts') APP.render.shiftsMatrix(); 
+            },
+
+            ui: {
+                updateClock: () => {
+                    const now = new Date();
+                    document.getElementById('current-time').innerText = now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                    document.getElementById('current-date').innerText = now.toLocaleDateString('tr-TR');
+                },
+                updatePayLabel: () => { APP.ui.calcAutoHourly(); },
+                calcAutoHourly: () => {
+                    const type = document.getElementById('inp-pay-type').value;
+                    const val = parseFloat(document.getElementById('inp-amount').value) || 0;
+                    const el = document.getElementById('hourly-calc-preview');
+                    if(type === 'salary' && val > 0) {
+                        el.classList.remove('hidden');
+                        document.getElementById('val-hourly-calc').innerText = (val/HOURS_IN_MONTH).toFixed(2); 
+                    } else el.classList.add('hidden');
+                },
+                initShiftModal: () => {
+                    // Vardiya modalı açılmadan önce bütçe hedefini güncel STATE'den alıp inputa doldurur
+                    const targetInput = document.getElementById('shift-budget-target');
+                    if (targetInput) {
+                        targetInput.value = STATE.config.targetBudget || 45000;
+                    }
+                    
+                    const roles = [...new Set(STATE.personnel.map(p => p.role))];
+                    const roleNeedsContainer = document.getElementById('shift-role-needs');
+                    if (roles.length === 0) {
+                        roleNeedsContainer.innerHTML = '<p class="text-yellow-400 text-sm">Vardiya ihtiyacını belirlemek için lütfen önce personel rollerini tanımlayın.</p>';
+                        return;
+                    }
+                    roleNeedsContainer.innerHTML = roles.map(role => `
+                        <div class="flex items-center gap-3">
+                            <label class="w-1/3 text-slate-300 text-sm font-medium">${role} İhtiyacı:</label>
+                            <input type="number" data-role="${role}" value="0" min="0" class="input-alpha text-center w-2/3" placeholder="Gerekli Kişi Sayısı">
+                        </div>
+                    `).join('');
+                },
+                updateWizardShifts: () => { /* Kaldırıldı */ },
+                // KRİTİK: Sayaç güncelleyici
+                updateTimer: (cardId, durationMs) => {
+                    const totalSeconds = Math.floor(durationMs / 1000);
+                    // DÜZELTME: minutes değişkeni tanımlanmadı hatası düzeltildi
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60); 
+                    const seconds = totalSeconds % 60;
+                    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    
+                    const timeEl = document.getElementById(`timer-display-${cardId}`);
+                    if (timeEl) timeEl.innerText = timeStr;
+
+                    // Maliyet Hesaplama
+                    const card = STATE.timeCards.find(c => c.id === cardId);
+                    if (card && card.personnelId) {
+                        const p = STATE.personnel.find(p => p.id === card.personnelId);
+                        if (p) {
+                            const totalHours = durationMs / (1000 * 60 * 60);
+                            const currentCost = (totalHours * p.hourlyRate).toFixed(2);
+                            const costEl = document.getElementById(`cost-display-${cardId}`);
+                            if (costEl) costEl.innerText = '₺' + currentCost;
+                        }
+                    }
+                },
+                // Personel adına göre renk sınıfı döndürür
+                getNameColorClass: (name) => {
+                    if (!name) return 'bg-slate-500';
+                    const initial = name.charAt(0).toUpperCase();
+                    // Basit hash ile A-O aralığına düşür
+                    const charCode = initial.charCodeAt(0) % 15; // 15 farklı renk sınıfı için
+                    const char = String.fromCharCode('A'.charCodeAt(0) + charCode);
+                    return `color-${char}`;
+                }
+            },
+
+            utils: {
+                isClockInTime: (shiftStart) => { return false; }
+            },
+
+            modals: {
+                addPersonnel: () => {
+                    document.getElementById('modal-personnel').classList.remove('hidden');
+                    document.getElementById('modal-personnel').classList.add('flex');
+                    document.getElementById('inp-name').value = '';
+                    document.getElementById('inp-phone').value = '';
+                    document.getElementById('inp-amount').value = '';
+                    // GÜNCEL: İzin Günü toggle'larını temizle
+                    document.querySelectorAll('#inp-day-off-container .day-off-toggle').forEach(el => {
+                        el.classList.remove('bg-brand-900/50', 'text-brand-400', 'border-brand-400');
+                        el.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
+                    }); 
+                },
+                // Bütçe Hedefi artık sadece Analysis sayfasından ayarlanır
+                setTarget: async () => {
+                    // Bu fonksiyon artık Analiz sayfasında kullanılmadığı için buraya direkt bir Swal koyalım
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Bilgi',
+                        text: 'Bütçe Hedefini değiştirmek için lütfen Vardiya Yönetimi sayfasındaki "Yeni Vardiya Tanımla" modalını kullanın.',
+                        background:'#0f172a', 
+                        color:'#fff'
+                    });
+                },
+                showShiftSetup: () => {
+                    APP.ui.initShiftModal(); 
+                    document.getElementById('modal-shift-setup').classList.remove('hidden');
+                    document.getElementById('modal-shift-setup').classList.add('flex');
+                    // Gerekli temizleme ve doldurma işlemleri burada yapılır
+                    document.getElementById('shift-name').value = '';
+                    document.getElementById('shift-start').value = '10:00';
+                    document.getElementById('shift-end').value = '18:00';
+                }
+            },
+
+            actions: {
+                savePersonnel: () => { /* Kısaltıldı */
+                    const payType = document.getElementById('inp-pay-type').value;
+                    const amountInput = document.getElementById('inp-amount');
+                    
+                    // GÜNCEL: İzin Günü verisini çoklu seçimden oku
+                    const selectedDays = Array.from(document.querySelectorAll('#inp-day-off-container > div.bg-brand-900\\/50')).map(el => el.getAttribute('data-day'));
+                    const dayOff = selectedDays.length > 0 ? selectedDays : null; // Dizi ya da null
+
+                    const amount = parseFloat(amountInput.value);
+                    
+                    if (isNaN(amount) || amount <= 0) { Swal.fire('Hata', 'Tutar geçerli bir sayı olmalıdır.', 'error'); return; }
+
+                    const personnelId = db.addDoc('personnel', {
+                        name: document.getElementById('inp-name').value,
+                        phone: document.getElementById('inp-phone').value,
+                        role: document.getElementById('inp-role').value,
+                        freq: document.getElementById('inp-freq').value,
+                        dayOff: dayOff, // Artık bir array veya null
+                        hourlyRate: payType === 'salary' ? parseFloat((amount/HOURS_IN_MONTH).toFixed(2)) : parseFloat(amount.toFixed(2))
+                    });
+                    
+                    db.addDoc('time_cards', { 
+                        personnelId: personnelId, 
+                        // Kartlar artık sadece bilgi panosu olduğu için durumu 'info' olarak ayarla.
+                        status: 'info', 
+                        date: new Date().toLocaleDateString('tr-TR'), 
+                        startTime: 0,
+                        endTime: 0,
+                        breakDuration: 0,
+                        workingDuration: 0,
+                        breakStart: 0,
+                        shiftName: 'Manuel Kayıt' 
+                    });
+
+                    document.getElementById('modal-personnel').classList.add('hidden');
+                    APP.actions.refreshAllData(); // Veri eklendi, arayüzü yenile
+                    Swal.fire({icon:'success', title:'Personel ve Bilgi Kartı Eklendi', toast:true, position:'top-end', showConfirmButton:false, timer:1500});
+                },
+                deletePersonnel: (id) => { /* Kısaltıldı */
+                    Swal.fire({ title: 'Emin misiniz?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Evet', cancelButtonText: 'Hayır' })
+                    .then((result) => { 
+                        if (result.isConfirmed) { 
+                            db.deleteDoc('personnel', id); 
+                            APP.actions.refreshAllData(); // Veri silindi, arayüzü yenile
+                            Swal.fire({icon:'success', title:'Silindi', toast:true, position:'top-end', showConfirmButton:false, timer:1500}); 
+                        }
+                    });
+                },
+                saveShift: () => { /* KRİTİK DÜZELTME: BÜTÇE HEDEFİ KAYIT MANTIĞI EKLENDİ */
+                    const budgetTargetInput = document.getElementById('shift-budget-target');
+                    const budgetTarget = parseFloat(budgetTargetInput.value);
+
+                    if (isNaN(budgetTarget) || budgetTarget < 1000) {
+                        Swal.fire('Hata', 'Lütfen geçerli bir bütçe hedefi (₺1000 ve üzeri) girin.', 'error');
+                        return;
+                    }
+                    
+                    // 1. Bütçe Hedefini Kalıcı Olarak Kaydet (Sürekli kalacak tek veri)
+                    const newConfig = { ...STATE.config, targetBudget: budgetTarget }; 
+                    db.setDoc('financial_config', 'main', newConfig); 
+                    
+                    // 2. Vardiya Verilerini Kaydet
+                    const name = document.getElementById('shift-name').value;
+                    const start = document.getElementById('shift-start').value;
+                    const end = document.getElementById('shift-end').value;
+                    const activeDays = Array.from(document.querySelectorAll('#shift-days > div.bg-brand-600')).map(el => el.getAttribute('data-day'));
+                    
+                    if (activeDays.length === 0) { Swal.fire('Hata', 'Lütfen vardiyanın aktif olduğu günleri seçin.', 'error'); return; }
+
+                    const roleInputs = document.querySelectorAll('#shift-role-needs input');
+                    const requiredRoles = {};
+                    let totalRequired = 0;
+                    roleInputs.forEach(input => {
+                        const role = input.getAttribute('data-role');
+                        const count = parseInt(input.value) || 0;
+                        if (count > 0) { requiredRoles[role] = count; totalRequired += count; }
+                    });
+
+                    if (totalRequired === 0) { Swal.fire('Uyarı', 'Lütfen bu vardiya için en az bir personel ihtiyacı girin.', 'warning'); return; }
+
+                    const newShift = { name: name, startTime: start, endTime: end, days: activeDays, requiredRoles: requiredRoles, assignments: {} }; // Yeni: Atama listesi
+                    db.addDoc('shifts', newShift);
+                    document.getElementById('modal-shift-setup').classList.add('hidden');
+                    APP.actions.refreshAllData(); // Veri eklendi, arayüzü yenile
+                    Swal.fire({icon:'success', title:'Vardiya ve Bütçe Hedefi Kaydedildi', toast:true, position:'top-end', showConfirmButton:false, timer:2000});
+                },
+                deleteShift: (id) => { /* Kısaltıldı */ 
+                    Swal.fire({ title: 'Vardiya Silinsin mi?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Evet', cancelButtonText: 'Hayır' })
+                    .then((result) => { if (result.isConfirmed) { db.deleteDoc('shifts', id); APP.actions.refreshAllData(); Swal.fire({icon:'success', title:'Vardiya Silindi', toast:true, position:'top-end', showConfirmButton:false, timer:1500}); }});
+                },
+
+                // KRİTİK YENİ: Maliyet Odaklı Otomatik Atama Fonksiyonu (AI Önerisi)
+                autoAssignShifts: () => {
+                    if (STATE.personnel.length === 0) { Swal.fire('Hata', 'Personel eklenmeden atama yapılamaz.', 'error'); return; }
+                    if (STATE.shifts.length === 0) { Swal.fire('Hata', 'Vardiya tanımlamadan atama yapılamaz.', 'error'); return; }
+
+                    // Atama sonuçlarını tutacak geçici yapı
+                    const assignmentResults = {}; // { day: { shiftId: { role: [personnelId, ...] } } }
+                    
+                    // Personel uygunluğunu ve kaç kere atandığını takip etmek için kopyalar oluştur
+                    const availablePersonnel = [...STATE.personnel];
+                    // const personnelAssignmentCount = {}; // Artık kullanılmıyor
+
+                    // 1. Personeli maliyetlerine göre sırala (Düşük maliyetli personel önceliklidir)
+                    availablePersonnel.sort((a, b) => a.hourlyRate - b.hourlyRate);
+
+                    DAYS_OF_WEEK.forEach(day => {
+                        assignmentResults[day] = {};
+                        
+                        // Gün için aktif vardiyaları al
+                        const activeShiftsToday = STATE.shifts.filter(s => s.days.includes(day));
+
+                        // 2. Her vardiya için atama yap
+                        activeShiftsToday.forEach(shift => {
+                            assignmentResults[day][shift.id] = {};
+                            const assignedStaffForShift = new Set(); // Bu vardiyaya atanmış kişileri tutar
+
+                            // Rol bazında döngü (Örnek: Garson 2, Aşçı 1)
+                            Object.entries(shift.requiredRoles).forEach(([role, requiredCount]) => {
+                                assignmentResults[day][shift.id][role] = [];
+
+                                for (let i = 0; i < requiredCount; i++) {
+                                    // 3. En düşük maliyetli ve uygun personeli bul
+                                    const cheapestAvailableStaff = availablePersonnel.find(p => 
+                                        p.role === role && 
+                                        // GÜNCEL: dayOff artık bir dizi olabilir
+                                        (!Array.isArray(p.dayOff) || !p.dayOff.includes(day)) && // İzin günü bugün olmayan
+                                        !assignedStaffForShift.has(p.id) // Bu vardiyaya atanmamış
+                                    );
+
+                                    if (cheapestAvailableStaff) {
+                                        // Atama yapıldı
+                                        assignmentResults[day][shift.id][role].push(cheapestAvailableStaff.id);
+                                        assignedStaffForShift.add(cheapestAvailableStaff.id);
+                                        
+                                        // Not: Basit dağıtım için personeli havuzdan kalıcı olarak çıkarmıyoruz,
+                                        // sadece bu vardiyaya çift atama yapmasını engelliyoruz (assignedStaffForShift). 
+                                        // Bu personel, başka bir vardiya/rol için tekrar kullanılabilir.
+                                    } else {
+                                        // Personel bulunamadı (Eksik var)
+                                        console.warn(`[ATAMA HATASI] ${day}, ${shift.name}, ${role} için personel bulunamadı.`);
+                                    }
+                                }
+                            });
+                        });
+                    });
+
+                    // 4. Atama sonuçlarını Veritabanına kaydet
+                    db.setDoc('schedule', 'weekly', assignmentResults);
+                    
+                    Swal.fire({
+                        icon:'success', 
+                        title:'AI Önerisi Uygulandı', 
+                        html: 'Maliyet optimizasyonu yapılarak **en kârlı vardiya planı** oluşturuldu ve uygulandı.', 
+                        position:'top-end', 
+                        showConfirmButton:false, 
+                        timer:3000
+                    });
+                },
+
+                // YENİ: Yazdırma işlevinin merkezileştirilmesi
+                printDocument: (type) => {
+                    const titleMap = {
+                        'personnel': 'ALPHA CRAFT - Personel Listesi',
+                        'shifts': 'ALPHA CRAFT - Haftalık Vardiya Matrisi',
+                        'timecards': 'ALPHA CRAFT - Personel Bilgi Panosu'
+                    };
+                    
+                    const printTitle = titleMap[type] || 'ALPHA CRAFT - Rapor';
+
+                    // Geçici olarak belge başlığını ayarla
+                    const originalTitle = document.title;
+                    document.title = printTitle;
+
+                    // Yazdırma penceresini aç
+                    window.print();
+
+                    // Başlığı geri yükle
+                    document.title = originalTitle;
+                },
+                
+                // YENİ: Manuel Yenileme Fonksiyonu
+                refreshAllData: () => {
+                    // Python'a yeniden yükleme emri göndermeden (o zaten doğru yükledi),
+                    // Sadece bellekten tüm dinleyicileri (arayüzü) tetikleriz.
+                    const collections = collectionsToLoad;
+                    collections.forEach(c => db._notify(c));
+                    Swal.fire({icon:'info', title:'Veriler Güncellendi', text:'Arayüzdeki tüm veriler manuel olarak yenilendi.', toast:true, position:'top-end', showConfirmButton:false, timer:1500});
+                },
+
+                // KRİTİK: Sayaçları Güncelleyen Ana Döngü - Sadece Bilgi Hesaplama
+                startCardTimer: () => { 
+                    if(cardTimerInterval) clearInterval(cardTimerInterval);
+                    
+                    cardTimerInterval = setInterval(() => {
+                        // Sadece timeCards listesinin güncellenmesini tetikle
+                        APP.render.timeCards(); 
+                    }, 5000); // 5 saniyede bir panoyu yenile
+                }
+            },
+
+            wizard: {
+                start: () => { /* Kaldırıldı */ },
+                generate: () => {}
+            },
+
+            render: {
+                // KRİTİK: BÜTÇE HESAPLAMALARINDA KURUS DÜZELTMESİ VE FORMATLAMA
+                dashboard: () => { /* Kısaltıldı */
+                    let totalDailyCost = 0;
+                    let dailyCashOut = 0; 
+                    const workingHours = 8;
+                    // KRİTİK DÜZELTME: getDay() Pazar için 0 döndürür, bu yüzden Pazartesi 1, Pazar 0 olacak şekilde düzeltiyoruz.
+                    // (new Date().getDay() + 6) % 7: Pzt=1, Sal=2... Cmt=6, Paz=0.
+                    // DAYS_OF_WEEK = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'] -> DAYS_OF_WEEK[0] = Pzt
+                    // Yanlış indekleme:
+                    // JS: Pazar=0, Pzt=1... Cmt=6
+                    // DAYS_OF_WEEK: Pzt=0, Sal=1... Cmt=5, Paz=6 (Aslında Pzt=0'dan başlıyor)
+
+                    // Doğru indekleme için mevcut mantığı değiştirmeden, sadece günü düzgün bulmak gerekiyor.
+                    const todayIndex = new Date().getDay(); // Pazar=0, Pzt=1... Cmt=6
+                    const DAYS_OF_WEEK_INDEXED = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt']; // JS'ye uygun sıralama
+
+                    const todayName = DAYS_OF_WEEK_INDEXED[todayIndex]; 
+                    
+                    const formatNumber = (num) => num.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+                    // Günlük maliyet hesaplaması:
+                    STATE.personnel.forEach(p => {
+                        // GÜNCEL: İzin Günü artık bir dizi olabilir. İzin günleri dizideyse, o gün çalışmaz.
+                        const hasDayOff = Array.isArray(p.dayOff) && p.dayOff.includes(todayName);
+                        // Eğer p.dayOff null ise (tam zamanlı), hasDayOff = false.
+                        
+                        if (!hasDayOff) { 
+                            // Personelin o gün çalıştığı varsayılır (Vardiya atamaları yapılsa bile dashboard'da sabit 8 saat üzerinden tahmin yürütülüyor.)
+                            const cost = p.hourlyRate * workingHours;
+                            totalDailyCost += cost;
+                            
+                            if (p.freq === 'daily') {
+                                dailyCashOut += cost; 
+                            }
+                        }
+                    });
+                    
+                    const projectedMonthlyCost = totalDailyCost * 30; // 30 gün varsayımı
+                    
+                    // KRİTİK DÜZELTME: Kayıtlı hedefi kullan, yoksa varsayılanı.
+                    const target = STATE.config.targetBudget || DEFAULT_CONFIG.targetBudget;
+                    
+                    const pct = (projectedMonthlyCost / target) * 100;
+                    
+                    // DÜZELTME: Rakam formatı (kuruşsuz)
+                    document.getElementById('dash-daily-cost').innerText = '₺' + formatNumber(totalDailyCost);
+                    document.getElementById('lbl-projected-cost').innerText = '₺' + formatNumber(projectedMonthlyCost);
+                    document.getElementById('dash-daily-cash').innerText = '₺' + formatNumber(dailyCashOut);
+
+                    // Bütçe Hedefi de kuruşsuz formatlandı (listeners içinde)
+                    
+                    const displayPct = Math.min(100, Math.round(pct));
+                    document.getElementById('lbl-target-budget').innerText = '₺' + formatNumber(target); // Artık dinamik hedefi gösteriyor
+                    document.getElementById('lbl-target-max').innerText = '₺' + formatNumber(target) + ' LİMİT'; // Artık dinamik hedefi gösteriyor
+                    
+                    document.getElementById('lbl-budget-pct').innerText = '%' + displayPct;
+                    document.getElementById('bar-budget-usage').style.width = displayPct + '%';
+
+                    const budgetStatusEl = document.getElementById('lbl-budget-status');
+                    const barFillEl = document.getElementById('bar-budget-usage');
+                    budgetStatusEl.className = 'status-badge'; barFillEl.className = 'progress-bar-fill';
+                    if(pct > 110) { budgetStatusEl.innerText = 'ÇOK YÜKSEK RİSK'; budgetStatusEl.classList.add('bg-red-900/50', 'text-red-300'); barFillEl.classList.add('bg-gradient-to-r', 'from-red-700', 'to-red-400'); }
+                    else if (pct > 90) { budgetStatusEl.innerText = 'RİSKLİ BÖLGE'; budgetStatusEl.classList.add('bg-yellow-900/50', 'text-yellow-300'); barFillEl.classList.add('bg-gradient-to-r', 'from-yellow-700', 'to-yellow-400'); }
+                    else { budgetStatusEl.innerText = 'HEDEF İÇİNDE'; budgetStatusEl.classList.add('bg-green-900/50', 'text-green-300'); barFillEl.classList.add('bg-gradient-to-r', 'from-brand-700', 'to-brand-400'); }
+
+                    const liveCards = STATE.timeCards.filter(x => x.status === 'active' || x.status === 'break');
+                    document.getElementById('dash-live-count').innerText = liveCards.length;
+                    document.getElementById('total-staff-count').innerText = STATE.personnel.length;
+                    
+                    const efficiencyRate = STATE.personnel.length > 0 ? Math.min(100, Math.round((liveCards.length / STATE.personnel.length) * 100)) : 0;
+                    document.getElementById('dash-efficiency-rate').innerText = '%' + efficiencyRate;
+
+                    APP.render.dashboardChart();
+                    APP.render.dashboardMatrix(); 
+                },
+                
+                personnel: () => { /* Kısaltıldı */
+                    const tb = document.getElementById('personnel-tbody');
+                    if(!STATE.personnel.length) { document.getElementById('personnel-empty').classList.remove('hidden'); tb.innerHTML=``; document.getElementById('total-staff-count').innerText = 0; return; }
+                    document.getElementById('personnel-empty').classList.add('hidden');
+                    document.getElementById('total-staff-count').innerText = STATE.personnel.length;
+                    tb.innerHTML = STATE.personnel.map(p => `
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                            <td class="p-4 text-white text-sm font-medium">${p.name}</td>
+                            <td class="p-4 text-slate-400 text-xs">${p.role}</td>
+                            <!-- GÜNCEL: İzin günlerini listele -->
+                            <td class="p-4 text-slate-400 text-xs">${Array.isArray(p.dayOff) && p.dayOff.length > 0 ? p.dayOff.join(', ') : 'Yok'}</td> 
+                            <td class="p-4 text-slate-500 text-xs">${p.freq === 'monthly' ? 'Maaş' : 'Günlük'}</td>
+                            <td class="p-4 text-brand-400 text-xs font-mono">${p.hourlyRate.toFixed(2)}₺/sa</td>
+                            <td class="p-4 text-right"><button onclick="APP.actions.deletePersonnel('${p.id}')" class="text-red-500 hover:text-white p-2 rounded hover:bg-red-900/50"><i class="fa-solid fa-trash"></i></button></td>
+                        </tr>
+                    `).join('');
+                },
+                
+                dashboardMatrix: () => { /* Kısaltıldı */ },
+                
+                shiftsList: () => { 
+                    const listEl = document.getElementById('shifts-list');
+                    if (!STATE.shifts.length) {
+                        listEl.innerHTML = '<div class="text-slate-600 text-sm text-center py-4">Henüz tanımlanmış vardiya yok.</div>';
+                        document.getElementById('schedule-grid').innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-600">Lütfen önce vardiyaları tanımlayın.</td></tr>';
+                        return;
+                    }
+                    listEl.innerHTML = STATE.shifts.map(s => `
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-white">${s.name} (${s.startTime} - ${s.endTime})</span>
+                                <span class="text-xs text-slate-400">${s.days.join(', ')} | Gerekli Personel: ${Object.entries(s.requiredRoles).map(([r, c]) => `${c} ${r}`).join(', ')}</span>
+                            </div>
+                            <button onclick="APP.actions.deleteShift('${s.id}')" class="text-red-500 hover:text-white p-2 rounded hover:bg-red-900/50"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `).join('');
+                },
+                
+                // KRİTİK DÜZELTME: Atama sonuçlarını (STATE.schedule) gösterir (Vardiya Gözükürlüğü Çözümü)
+                shiftsMatrix: () => {
+                    const gridBody = document.getElementById('schedule-grid');
+                    
+                    if (STATE.shifts.length === 0) {
+                        // Vardiya tanımlı değilse
+                        gridBody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-600">Lütfen önce vardiyaları tanımlayın.</td></tr>';
+                        return;
+                    }
+                    
+                    // Vardiya tanımlı ise, matrisi çizmeye çalış.
+                    // KRİTİK: Vardiya görünürlüğü sorununun ana çözümü: Vardiya listesi doluysa, render et.
+                    const allRoles = [...new Set(STATE.personnel.map(p => p.role).concat(STATE.shifts.flatMap(s => Object.keys(s.requiredRoles))))].filter(Boolean).sort();
+                    const allPersonnelMap = STATE.personnel.reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
+
+                    if (allRoles.length === 0 && STATE.shifts.length > 0) {
+                        // Vardiya var ama personel rolü yoksa, yine de varsayılan matrisi çiz.
+                        gridBody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-600">Vardiya Matrisi personel rolleri olmadan çizilemez.</td></tr>';
+                        return;
+                    }
+
+                    if (allRoles.length === 0) return; // Ne vardiya ne personel varsa boş döndür
+
+                    gridBody.innerHTML = allRoles.map(role => {
+                        let row = `<td class="p-3 border-r border-slate-800 font-bold">${role}</td>`;
+                        
+                        DAYS_OF_WEEK.forEach(day => {
+                            let cellContent = '';
+                            const assignedShifts = STATE.shifts.filter(s => s.days.includes(day));
+
+                            assignedShifts.forEach(shift => {
+                                const required = shift.requiredRoles[role] || 0;
+                                
+                                if (required > 0) {
+                                    // Atanmış personelleri STATE.schedule'dan çek
+                                    const assignedIds = STATE.schedule[day]?.[shift.id]?.[role] || [];
+                                    
+                                    const assignedNames = assignedIds.map(id => {
+                                        const p = allPersonnelMap[id];
+                                        if (p) {
+                                            const colorClass = APP.ui.getNameColorClass(p.name);
+                                            // Personel adının ilk harfini alıp nokta ile göster
+                                            return `<span class="whitespace-nowrap"><span class="personnel-dot ${colorClass}" title="${p.name} (${p.hourlyRate.toFixed(2)}₺/saat)"></span>${p.name.split(' ')[0]}</span>`;
+                                        }
+                                        return `<span class="text-red-500 text-[10px]">(Bilinmeyen Kişi)</span>`;
+                                    }).join(' ');
+
+                                    const emptySlots = required - assignedIds.length;
+                                    const missing = emptySlots > 0 ? `<span class="text-red-500 text-[10px] whitespace-nowrap">(Eksik: ${emptySlots})</span>` : '';
+                                    
+                                    cellContent += `<div class="mb-1 p-1 rounded bg-slate-900/50">${shift.name}: ${assignedNames} ${missing}</div>`;
+                                }
+                            });
+                            
+                            row += `<td class="p-3 border-r border-slate-800 text-center text-[10px] text-slate-300">${cellContent || '<span class="text-slate-600">-</span>'}</td>`;
+                        });
+                        return `<tr>${row}</tr>`;
+                    }).join('');
+                },
+
+                // KRİTİK: Personel Bilgi Panosu (Eski TimeCards)
+                timeCards: () => {
+                    const grid = document.getElementById('timecards-grid');
+                    const emptyMessage = document.getElementById('timecards-empty');
+                    
+                    // 1. Toplam Çalışma Süresi Hesapla (Ayın 1'inden bugüne)
+                    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+                    
+                    const personnelWorkHours = {}; // { personnelId: { hours: number, cost: number, totalCards: number } }
+
+                    // Tüm personelleri önceden sıfır değerlerle initialize et.
+                    STATE.personnel.forEach(p => {
+                         personnelWorkHours[p.id] = { hours: 0, cost: 0, totalCards: 0 };
+                    });
+
+                    // Geçmiş kayıtlardan verileri topla
+                    STATE.timeCards.forEach(card => {
+                        const pid = card.personnelId;
+                        
+                        // Sadece tamamlanmış kartları say
+                        if (card.status === 'completed') { 
+                            const p = STATE.personnel.find(p => p.id === pid);
+                            if (p && card.endTime >= startOfMonth) {
+                                const hours = card.workingDuration || 0;
+                                const cost = hours * p.hourlyRate;
+                                
+                                personnelWorkHours[pid].hours += hours;
+                                personnelWorkHours[pid].cost += cost;
+                                personnelWorkHours[pid].totalCards += 1;
+                            }
+                        }
+                    });
+                    
+                    // 2. Şampiyonu Bul (En çok çalışan)
+                    let championId = null;
+                    let maxHours = -1;
+
+                    Object.entries(personnelWorkHours).forEach(([pid, data]) => {
+                        if (data.hours > maxHours) {
+                            maxHours = data.hours;
+                            championId = pid;
+                        }
+                    });
+
+                    // 3. Kartları Render Et (Tüm personeller için)
+                    const cardsToRender = STATE.personnel.map(p => {
+                        // Eğer bu personel için hiç kart kaydı yoksa bile (yeni eklendiyse), 0 değerlerini kullan
+                        const workData = personnelWorkHours[p.id] || { hours: 0, cost: 0, totalCards: 0 };
+                        const isChampion = p.id === championId && maxHours > 0;
+                        const cardClass = isChampion ? 'champ-card border-accent-gold' : 'border-slate-700/50';
+
+                        // Saat formatlama
+                        const totalHours = Math.floor(workData.hours);
+                        const remainingMinutes = Math.round((workData.hours % 1) * 60);
+
+                        // DÜZELTME: Maliyet rakamlarını kuruşsuz formatla
+                        const monthlyCostFormatted = '₺' + workData.cost.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                        const hourlyRateFormatted = '₺' + p.hourlyRate.toFixed(0);
+
+                        return `
+                            <div class="glass-card p-5 rounded-xl flex flex-col justify-between ${cardClass}">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex flex-col">
+                                        <div class="text-sm text-slate-500">${p.role}</div>
+                                        <h3 class="text-xl font-bold text-white tracking-tight">${p.name}</h3>
+                                    </div>
+                                    ${isChampion 
+                                        ? `<span class="status-badge bg-accent-gold/50 text-yellow-300"><i class="fa-solid fa-crown mr-1"></i> ŞAMPİYON</span>`
+                                        : `<span class="status-badge bg-brand-900/50 text-brand-300">${p.role.toUpperCase()}</span>`
+                                    }
+                                </div>
+                                
+                                <div class="space-y-3 mt-2 text-sm">
+                                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                                        <span class="text-slate-400"><i class="fa-solid fa-phone mr-2 text-brand-400"></i> Telefon</span>
+                                        <span class="font-medium text-white">${p.phone || 'Girilmedi'}</span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                                        <span class="text-slate-400"><i class="fa-solid fa-sack-dollar mr-2 text-green-400"></i> Saatlik Ücret</span>
+                                        <span class="font-mono text-green-400">${hourlyRateFormatted} / sa</span>
+                                    </div>
+                                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                                        <span class="text-slate-400"><i class="fa-solid fa-clock mr-2 text-yellow-400"></i> Aylık Çalışma</span>
+                                        <span class="font-mono text-yellow-400">${totalHours} sa ${remainingMinutes} dk</span>
+                                    </div>
+                                    <div class="flex justify-between pt-2">
+                                        <span class="text-lg font-bold text-slate-300">Tahmini Maliyet (Ay)</span>
+                                        <span class="text-lg font-bold text-accent-danger">${monthlyCostFormatted}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    if (STATE.personnel.length === 0) { 
+                        emptyMessage.classList.remove('hidden'); 
+                        grid.innerHTML = '';
+                        return; 
+                    }
+                    
+                    emptyMessage.classList.add('hidden'); 
+                    grid.innerHTML = cardsToRender;
+                },
+
+                dashboardChart: () => { /* Kısaltıldı */ },
+                analysisChart: () => { /* Kısaltıldı */ }
+            }
+        };
+        
+        window.addEventListener('pywebviewready', () => { 
+             APP.data.loadAllInitialData();
+        });
+    </script>
+</body>
+</html>

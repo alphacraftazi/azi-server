@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Craft Stock Otomasyonu</title>
+
+    <!-- Simgeler ve Tailwind -->
+    <link rel="icon" type="image/png" href="https://placehold.co/32x32/3b82f6/ffffff?text=A">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // ALPHA CRAFT Teması (AZI BLUE)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
+                        brand: { 400: '#3b82f6', 500: '#2563eb', 600: '#1d4ed8', 900: '#1e3a8a' }, // MAVİ (AZI)
+                        accent: { primary: '#f59e0b', secondary: '#0ea5e9', danger: '#ef4444', profit: '#10b981' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'typing': 'typing 2.5s steps(30, end) forwards, blink-caret .75s step-end infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        typing: { 'from': { width: '0' }, 'to': { width: '100%' } },
+                        'blink-caret': { 'from, to': { borderColor: 'transparent' }, '50%': { borderColor: '#3b82f6' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+
+        .input-alpha {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .input-alpha:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-brand {
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-brand:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #172554 100%);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .nav-btn.active {
+            @apply bg-brand-900/50 text-brand-400 font-bold;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 3px;
+        }
+
+        .alert-error {
+            @apply bg-red-900/50 text-red-300 p-3 rounded-lg border border-red-800/50 text-sm;
+        }
+
+        /* Animation Classes */
+        .slogan-text {
+            overflow: hidden;
+            border-right: .15em solid #3b82f6;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .2em;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #3b82f6;
+            width: fit-content;
+            animation: typing 2.5s steps(30, end) forwards, blink-caret .75s step-end infinite;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- SPLASH SCREEN (Artık Kolay Theme + Loading Bar) -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-[#020617] flex flex-col items-center justify-center">
+        <div class="relative animate-pulse">
+            <div
+                class="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-900/50 border border-brand-500/20">
+                <span class="font-bold text-4xl text-white font-sans">A</span>
+            </div>
+        </div>
+        <h1 class="mt-8 text-3xl font-bold text-white tracking-widest">ALPHA CRAFT</h1>
+        <div
+            class="mt-2 text-brand-400 font-light text-sm tracking-[0.5em] uppercase border-t border-brand-900/50 pt-2">
+            ARTIK KOLAY</div>
+
+        <!-- Loading Bar -->
+        <div class="w-64 h-1 bg-slate-800 rounded-full mt-8 overflow-hidden relative">
+            <div id="splash-progress"
+                class="h-full bg-brand-400 shadow-[0_0_10px_rgba(59,130,246,0.5)] w-0 transition-all duration-[2000ms] ease-out">
+            </div>
+        </div>
+        <div class="mt-2 text-xs text-slate-500 font-mono">Sistem Yükleniyor...</div>
+    </div>
+
+    <!-- LİSANS MODALI -->
+    <div id="license-modal" class="fixed inset-0 bg-black/90 z-[110] hidden flex items-center justify-center p-4">
+        <div
+            class="w-full max-w-md p-8 glass rounded-2xl border border-brand-400/20 shadow-[0_0_50px_rgba(59,130,246,0.1)] text-center relative overflow-hidden">
+            <h2 class="text-2xl font-bold text-white mb-2">Alpha Craft Lisans Aktivasyonu</h2>
+            <p class="text-slate-400 text-sm mb-6">Lütfen ürün anahtarınızı giriniz.</p>
+            <div class="space-y-4">
+                <input type="text" id="license-key-input"
+                    class="input-alpha text-center font-mono tracking-widest uppercase border-brand-900/50 focus:border-brand-400"
+                    placeholder="XXXX-XXXX" onkeyup="if(event.key==='Enter') APP.license.activate()">
+                <button onclick="APP.license.activate()" id="activate-btn"
+                    class="w-full py-3 btn-brand text-white font-bold rounded-lg transition-all shadow-lg shadow-brand-900/30">Sistemi
+                    Etkinleştir</button>
+            </div>
+            <p id="license-message" class="mt-4 text-sm"></p>
+        </div>
+    </div>
+    <!-- BİTİŞ: LİSANS MODALI -->
+
+    <!-- Header -->
+    <header class="h-16 glass-header flex items-center justify-between px-6 z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-900 rounded-lg flex items-center justify-center shadow-lg shadow-brand-900/50 border border-brand-500/20">
+                <span class="font-bold text-2xl text-white font-sans">A</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white leading-tight">ALPHA CRAFT <span
+                        class="text-brand-400 font-light text-xs ml-1">STOCK</span></h1>
+            </div>
+        </div>
+        <div class="text-sm font-bold text-white font-mono" id="current-time">00:00:00</div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 overflow-hidden opacity-0 transition-opacity duration-1000" id="app-container">
+        <!-- Sidebar -->
+        <aside class="w-64 glass border-r border-slate-800 flex flex-col z-40 shrink-0">
+            <div class="p-6">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 pl-2 opacity-70">Envanter
+                    Yönetimi</p>
+                <nav class="space-y-1">
+                    <button onclick="APP.nav('dashboard')" id="nav-dashboard"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium active"><i
+                            class="fa-solid fa-chart-bar w-4"></i> Genel Bakış</button>
+                    <button onclick="APP.nav('stock')" id="nav-stock"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i
+                            class="fa-solid fa-warehouse w-4"></i> Stok Girişi</button>
+                    <button onclick="APP.nav('recipes')" id="nav-recipes"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i
+                            class="fa-solid fa-receipt w-4"></i> Ürün & Reçete</button>
+                </nav>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-8 mb-4 pl-2 opacity-70">
+                    Operasyon & Analiz</p>
+                <nav class="space-y-1">
+                    <button onclick="APP.nav('sales')" id="nav-sales"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i
+                            class="fa-solid fa-dollar-sign w-4"></i> Günlük Satış</button>
+                    <button onclick="APP.nav('inventory')" id="nav-inventory"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i
+                            class="fa-solid fa-list-check w-4"></i> Haftalık Sayım</button>
+                    <button onclick="APP.nav('analysis')" id="nav-analysis"
+                        class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:bg-white/5 hover:text-brand-400 transition-all group text-sm font-medium"><i
+                            class="fa-solid fa-chart-line w-4"></i> Analiz & Eksik</button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 bg-[#020617] relative overflow-y-auto p-8 custom-scrollbar" id="main-content">
+
+            <!-- DASHBOARD -->
+            <div id="view-dashboard" class="animate-fade-in space-y-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i
+                            class="fa-solid fa-chart-bar text-brand-400"></i> Genel Bakış Paneli</h2>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    <div class="glass-card p-4 rounded-xl border-brand-400/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Toplam Stok Değeri</h3><span
+                            class="text-xl font-bold text-white mt-1" id="dash-stock-value">₺0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-accent-danger/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Kümülatif Fire Maliyeti</h3><span
+                            class="text-xl font-bold text-accent-danger mt-1" id="dash-waste-cost">₺0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-brand-400/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Kümülatif Fazlalık Maliyeti</h3><span
+                            class="text-xl font-bold text-brand-400 mt-1" id="dash-gain-cost">₺0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-accent-primary/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Bugünkü Ciro</h3><span
+                            class="text-xl font-bold text-accent-primary mt-1" id="dash-daily-revenue">₺0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-accent-secondary/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Envanter Devir Hızı</h3><span
+                            class="text-xl font-bold text-accent-secondary mt-1" id="dash-turnover">0.0 X</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-red-900/50">
+                        <h3 class="text-[10px] text-slate-500 font-bold uppercase">Kritik Stok Adedi</h3><span
+                            class="text-xl font-bold text-red-400 mt-1" id="dash-critical-count">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-xl h-[400px]">
+                        <h3 class="text-white font-bold mb-4">Haftalık Stok Tüketim Maliyeti</h3>
+                        <div class="relative flex-1"><canvas id="dashboardConsumptionChart"></canvas></div>
+                    </div>
+                    <div class="glass p-6 rounded-xl h-[400px]">
+                        <h3 class="text-white font-bold mb-4">Ürün Satış Hacmi (Adet)</h3>
+                        <div class="relative flex-1"><canvas id="dashboardSalesChart"></canvas></div>
+                    </div>
+                    <div class="glass p-6 rounded-xl h-[400px]">
+                        <h3 class="text-white font-bold mb-4">Reçete Maliyeti Dağılımı</h3>
+                        <div class="relative flex-1"><canvas id="dashboardRecipeCostChart"></canvas></div>
+                    </div>
+                    <div class="glass p-6 rounded-xl h-[400px] flex flex-col border border-slate-700">
+                        <h3 class="text-white font-bold text-sm mb-4 flex items-center gap-2"><i
+                                class="fa-solid fa-robot text-accent-primary"></i> Alpha AI Önerileri</h3>
+                        <div class="space-y-3 overflow-y-auto custom-scrollbar flex-1" id="ai-suggestions-list">
+                            <div class="text-slate-500 text-sm">Veri analizi yapıldıktan sonra öneriler burada
+                                görünecektir.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STOK GİRİŞİ -->
+            <div id="view-stock" class="hidden animate-fade-in space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i
+                            class="fa-solid fa-warehouse text-brand-400"></i> Stok Yönetimi</h2>
+                    <button onclick="APP.modals.addStock()"
+                        class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i
+                            class="fa-solid fa-plus"></i> Yeni Stok Ekle</button>
+                </div>
+                <div class="glass rounded-xl overflow-hidden border border-slate-800">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Stok Adı</th>
+                                <th class="p-4">Mevcut Miktar</th>
+                                <th class="p-4">Birim Fiyat (₺)</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stock-tbody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                    <div id="stock-empty" class="hidden p-12 text-center text-slate-600 text-sm">Kayıtlı stok
+                        bulunamadı.</div>
+                </div>
+            </div>
+
+            <!-- ÜRÜN & REÇETE -->
+            <div id="view-recipes" class="hidden animate-fade-in space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i
+                            class="fa-solid fa-receipt text-brand-400"></i> Ürün & Reçete</h2>
+                    <button onclick="APP.modals.addProduct()"
+                        class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i
+                            class="fa-solid fa-plus"></i> Yeni Ürün</button>
+                </div>
+                <div class="glass rounded-xl overflow-hidden border border-slate-800">
+                    <div id="product-list" class="divide-y divide-slate-800/50 p-4 space-y-4"></div>
+                    <div id="product-empty" class="hidden p-12 text-center text-slate-600 text-sm">Ürün bulunamadı.
+                    </div>
+                </div>
+            </div>
+
+            <!-- GÜNLÜK SATIŞ -->
+            <div id="view-sales" class="hidden animate-fade-in space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i
+                            class="fa-solid fa-dollar-sign text-brand-400"></i> Günlük Satış</h2>
+                    <div class="flex gap-2">
+                        <button onclick="APP.actions.clearDailySales()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs shadow-lg transition-all"><i
+                                class="fa-solid fa-trash-can"></i> Satışları Sıfırla</button>
+                        <button onclick="APP.modals.addDailySale()"
+                            class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i
+                                class="fa-solid fa-calculator"></i> Satış İşle</button>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-xl border border-slate-800 space-y-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Bugünkü Satışlar <span
+                            class="text-brand-400 text-sm font-normal" id="current-sale-date"></span></h3>
+                    <div id="daily-sales-list" class="space-y-3"></div>
+                    <h3 class="text-lg font-bold text-white pt-4 border-t border-slate-800">Geçmiş Kayıtlar</h3>
+                    <div id="past-sales-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- HAFTALIK SAYIM -->
+            <div id="view-inventory" class="hidden animate-fade-in space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i
+                            class="fa-solid fa-list-check text-brand-400"></i> Haftalık Sayım</h2>
+                    <div class="flex gap-2">
+                        <button onclick="APP.actions.clearCountReports()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-xs shadow-lg transition-all"><i
+                                class="fa-solid fa-history"></i> Geçmişi Temizle</button>
+                        <button onclick="APP.actions.startWeeklyCount()" id="start-count-btn"
+                            class="btn-brand px-5 py-2 flex items-center gap-2 text-xs shadow-lg"><i
+                                class="fa-solid fa-arrows-rotate"></i> Sayıma Başla</button>
+                    </div>
+                </div>
+                <div id="count-area" class="glass p-6 rounded-xl border border-slate-800">
+                    <p class="text-yellow-400 text-sm" id="count-message">Lütfen yeni bir sayım başlatın.</p>
+                </div>
+                <div class="glass rounded-xl overflow-hidden border border-slate-800">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Başlık</th>
+                                <th class="p-4">Tarih</th>
+                                <th class="p-4">Fark</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="count-reports-tbody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                    <div id="reports-empty" class="hidden p-12 text-center text-slate-600 text-sm">Rapor bulunamadı.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALİZ -->
+            <div id="view-analysis" class="hidden animate-fade-in space-y-6">
+                <h2 class="text-xl font-bold text-white mb-6"><i class="fa-solid fa-chart-line text-brand-400"></i>
+                    Analiz & Eksik</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-xl h-[400px]"><canvas id="analysisTopStockChart"></canvas></div>
+                    <div class="glass p-6 rounded-xl flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-red-400 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Eksik
+                                Listesi</h3>
+                            <button onclick="APP.actions.printShortageList()" class="btn-brand px-3 py-1 text-xs"><i
+                                    class="fa-solid fa-print"></i> Yazdır</button>
+                        </div>
+                        <div id="critical-shortage-list" class="space-y-3 flex-1 overflow-y-auto"></div>
+                    </div>
+                </div>
+                <div class="mt-8 p-6 glass-card rounded-xl border-red-800/50 bg-red-900/10">
+                    <h3 class="text-lg font-bold text-red-400 mb-2">Tüm Sistemi Sıfırla</h3>
+                    <p class="text-sm text-slate-400 mb-4">Bu işlem tüm stok, reçete ve satış verilerini kalıcı olarak
+                        siler.</p>
+                    <button onclick="APP.actions.resetSystem()"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-lg"><i
+                            class="fa-solid fa-trash-can mr-1"></i> FABRİKA AYARLARINA DÖN</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALLAR -->
+    <div id="modal-stock" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-md rounded-2xl p-8 border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-6">Yeni Stok Girişi</h3>
+            <form onsubmit="event.preventDefault(); APP.actions.saveStock();" class="space-y-4">
+                <input type="text" id="stock-name" required class="input-alpha" placeholder="Stok Adı">
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="stock-unit" class="input-alpha">
+                        <option>kg</option>
+                        <option>gr</option>
+                        <option>lt</option>
+                        <option>ml</option>
+                        <option>adet</option>
+                    </select>
+                    <input type="number" id="stock-price" required class="input-alpha" placeholder="Birim Fiyat"
+                        step="any">
+                </div>
+                <input type="number" id="stock-quantity" required class="input-alpha" placeholder="Başlangıç Miktarı"
+                    step="any">
+                <div class="flex gap-3"><button type="button"
+                        onclick="document.getElementById('modal-stock').classList.add('hidden')"
+                        class="flex-1 py-3 bg-slate-800 rounded">İptal</button><button type="submit"
+                        class="flex-1 py-3 btn-brand rounded">Kaydet</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-update-stock" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-md rounded-2xl p-8 border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-4">Stok Miktarı Ekle</h3>
+            <p id="update-stock-name" class="text-brand-400 font-bold mb-4"></p>
+            <form onsubmit="event.preventDefault(); APP.actions.updateStockQuantity();" class="space-y-4">
+                <input type="hidden" id="update-stock-id">
+                <input type="number" id="add-quantity" required class="input-alpha" placeholder="Eklenecek Miktar"
+                    step="any">
+                <div class="flex gap-3"><button type="button"
+                        onclick="document.getElementById('modal-update-stock').classList.add('hidden')"
+                        class="flex-1 py-3 bg-slate-800 rounded">İptal</button><button type="submit"
+                        class="flex-1 py-3 btn-brand rounded">Güncelle</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-product" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-lg rounded-2xl p-8 border border-slate-700/50">
+            <h3 class="text-lg font-bold text-white mb-6">Yeni Ürün & Reçete</h3>
+            <form onsubmit="event.preventDefault(); APP.actions.saveProduct();" class="space-y-4">
+                <input type="text" id="product-name" required class="input-alpha" placeholder="Ürün Adı">
+                <input type="number" id="product-price" required class="input-alpha" placeholder="Satış Fiyatı"
+                    step="any">
+                <div id="recipe-inputs" class="space-y-3 p-3 bg-slate-800 rounded-lg"></div>
+                <button type="button" onclick="APP.actions.addRecipeInput()"
+                    class="w-full py-2 border border-slate-600 rounded text-xs text-slate-400 hover:text-white">+
+                    Bileşen Ekle</button>
+                <div class="flex gap-3"><button type="button"
+                        onclick="document.getElementById('modal-product').classList.add('hidden')"
+                        class="flex-1 py-3 bg-slate-800 rounded">İptal</button><button type="submit"
+                        class="flex-1 py-3 btn-brand rounded">Kaydet</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-daily-sale" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-lg rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-white mb-6">Satış İşleme</h3>
+            <form onsubmit="event.preventDefault(); APP.actions.processDailySale();" class="space-y-4">
+                <div id="sale-inputs" class="space-y-3"></div>
+                <button type="button" onclick="APP.actions.addSaleInput()"
+                    class="w-full py-2 border border-slate-600 rounded text-xs text-slate-400">+ Ürün Ekle</button>
+                <div class="mt-4 p-3 bg-slate-900 rounded-lg text-right">
+                    <p class="text-xs text-slate-400">Toplam: <span class="font-bold text-white"
+                            id="sale-total-amount">₺0.00</span></p>
+                </div>
+                <div class="flex gap-3"><button type="button"
+                        onclick="document.getElementById('modal-daily-sale').classList.add('hidden')"
+                        class="flex-1 py-3 bg-slate-800 rounded">İptal</button><button type="submit"
+                        class="flex-1 py-3 btn-brand rounded">Onayla</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-weekly-count" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-xl rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-white mb-4">Haftalık Sayım Girişi</h3>
+            <form onsubmit="event.preventDefault(); APP.actions.finalizeWeeklyCount();" class="space-y-4">
+                <input type="text" id="report-title" class="input-alpha" placeholder="Rapor Başlığı" required>
+                <div id="physical-count-inputs" class="space-y-4"></div>
+                <div class="flex gap-3"><button type="button"
+                        onclick="document.getElementById('modal-weekly-count').classList.add('hidden')"
+                        class="flex-1 py-3 bg-slate-800 rounded">İptal</button><button type="submit"
+                        class="flex-1 py-3 btn-brand rounded">Sayımı Bitir</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA LAYER ---
+        class PersistentDB {
+            constructor() { this.inMemory = {}; this.subs = {}; }
+            async _set(c, d) {
+                this.inMemory[c] = d;
+                // Local Save
+                if (window.pywebview && window.pywebview.api) {
+                    await window.pywebview.api.save_data(c, JSON.stringify(d));
+                    // ONLINE SYNC (Silent) - AZI integration
+                    if (STATE.license.active && STATE.license.key) {
+                        window.pywebview.api.sync_telemetry(STATE.license.key, c, JSON.stringify(d));
+                    }
+                }
+                this._notify(c);
+            }
+            async clearCollection(c) { await this._set(c, []); }
+            onSnapshot(c, cb) { if (!this.subs[c]) this.subs[c] = []; this.subs[c].push(cb); }
+            _notify(c) {
+                const d = this.inMemory[c] || [];
+                const isSingle = (c === 'financial_config' || c === 'license_status');
+                if (this.subs[c]) {
+                    const snap = { docs: isSingle ? [] : d.map(x => ({ id: x.id, data: () => x })), data: () => isSingle ? d : (d[0] || null) };
+                    this.subs[c].forEach(fn => fn(snap));
+                }
+            }
+            addDoc(c, data) { const list = this.inMemory[c] || []; const id = Math.random().toString(36).substr(2, 9); list.push({ id, ...data }); this._set(c, list); return id; }
+            deleteDoc(c, id) { let list = (this.inMemory[c] || []).filter(x => x.id !== id); this._set(c, list); }
+            updateDoc(c, id, data) { let list = this.inMemory[c] || []; const i = list.findIndex(x => x.id === id); if (i !== -1) list[i] = { ...list[i], ...data }; this._set(c, list); }
+            setDoc(c, id, data) { if (c === 'license_status') this._set(c, data); else this.updateDoc(c, id, data); }
+        }
+
+        const db = new PersistentDB();
+        const collections = ['raw_stock', 'products', 'daily_sales', 'count_reports', 'license_status'];
+        const STATE = { rawStock: [], products: [], dailySales: [], countReports: [], charts: {}, license: { active: false, key: null } };
+        const TODAY = new Date().toLocaleDateString('tr-TR');
+
+        window.APP = {
+            data: {
+                load: async () => {
+                    // Loading Bar Animation Trigger
+                    setTimeout(() => { document.getElementById('splash-progress').style.width = '100%'; }, 100);
+
+                    for (const c of collections) {
+                        if (window.pywebview && window.pywebview.api) {
+                            const res = await window.pywebview.api.load_data(c);
+                            try { db.inMemory[c] = JSON.parse(res); } catch (e) { db.inMemory[c] = (c === 'license_status' ? { active: false } : []); }
+                        }
+                    }
+                    APP.listeners();
+                    collections.forEach(c => db._notify(c));
+
+                    // Auto License Check (Delayed for Animation)
+                    setTimeout(async () => {
+                        if (window.pywebview && window.pywebview.api && window.pywebview.api.get_auto_license) {
+                            const autoKey = await window.pywebview.api.get_auto_license();
+                            if (autoKey) {
+                                document.getElementById('license-key-input').value = autoKey;
+                                APP.license.activate(autoKey);
+                                return;
+                            }
+                        }
+                        APP.license.check();
+                    }, 2200);
+                }
+            },
+            license: {
+                check: () => {
+                    if (STATE.license.active) {
+                        document.getElementById('splash-screen').classList.add('hidden');
+                        document.getElementById('app-container').classList.remove('opacity-0');
+                    } else {
+                        // Splash stays visible via opacity logic but modal appears
+                        // Actually we want to hide splash only if active.
+                        // If not active, show modal over splash? Or hide splash text?
+                        // Let's hide slash text/logo slowly or just overlay modal.
+                        document.getElementById('splash-screen').classList.add('hidden');
+                        document.getElementById('license-modal').classList.remove('hidden');
+                    }
+                },
+                activate: async (autoKey = null) => {
+                    const el = document.getElementById('license-key-input');
+                    const btn = document.getElementById('activate-btn');
+                    const msg = document.getElementById('license-message');
+                    const key = autoKey || el.value.trim();
+
+                    if (!key) return;
+
+                    btn.innerText = "Kontrol Ediliyor...";
+                    btn.disabled = true;
+                    msg.innerText = "";
+
+                    try {
+                        let res = { valid: false };
+                        if (window.pywebview && window.pywebview.api) {
+                            res = await window.pywebview.api.check_license(key);
+                        } else {
+                            // Dev fallback
+                            if (key === 'DEMO') res = { valid: true };
+                        }
+
+                        if (res.valid) {
+                            db.setDoc('license_status', 'main', { active: true, key: key });
+                            STATE.license.active = true;
+                            STATE.license.key = key;
+
+                            document.getElementById('license-modal').classList.add('hidden');
+                            document.getElementById('splash-screen').classList.add('hidden');
+                            document.getElementById('app-container').classList.remove('opacity-0');
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sistem Aktif',
+                                text: 'Giriş yapılıyor...',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                background: '#0f172a', color: '#fff'
+                            });
+                        } else {
+                            msg.innerText = "Hata: " + (res.error || "Geçersiz Lisans Anahtarı");
+                            msg.className = "mt-4 text-sm text-red-500 animate-pulse";
+                        }
+                    } catch (e) {
+                        msg.innerText = "Bağlantı Hatası: " + e;
+                        msg.className = "mt-4 text-sm text-red-500";
+                    } finally {
+                        btn.innerText = "Sistemi Etkinleştir";
+                        btn.disabled = false;
+                    }
+                }
+            },
+            listeners: () => {
+                db.onSnapshot('raw_stock', snap => { STATE.rawStock = snap.docs.map(d => d.data()); APP.render.stock(); APP.render.dashboard(); });
+                db.onSnapshot('products', snap => { STATE.products = snap.docs.map(d => d.data()); APP.render.recipes(); });
+                db.onSnapshot('daily_sales', snap => { STATE.dailySales = snap.docs.map(d => d.data()); APP.render.sales(); APP.render.dashboard(); });
+                db.onSnapshot('count_reports', snap => { STATE.countReports = snap.docs.map(d => d.data()); APP.render.countReports(); APP.render.analysis(); APP.render.dashboard(); });
+                db.onSnapshot('license_status', snap => { STATE.license = snap.data() || { active: false }; });
+            },
+
+            // --- NEW: AZI SUPERVISOR INTELLIGENCE ---
+            supervisor: {
+                checkStockHealth: () => {
+                    // Check for critical stocks that are ignored
+                    const criticalItems = STATE.rawStock.filter(s => s.quantity <= 5);
+                    if (criticalItems.length > 0) {
+                        APP.supervisor.report("CRITICAL_STOCK_IGNORED", {
+                            count: criticalItems.length,
+                            items: criticalItems.map(s => s.name).join(", ")
+                        });
+                        // Visual Warning
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'warning',
+                            title: 'AZI UYARISI', text: `${criticalItems.length} ürün kritik seviyede! Sipariş verilmeli.`,
+                            background: '#0f172a', color: '#fff', timer: 5000
+                        });
+                    }
+                },
+                checkSalesTrend: () => {
+                    // Check if sales are below target (Basic logic)
+                    const totalRevenue = STATE.dailySales.reduce((a, b) => a + b.total, 0);
+                    if (STATE.config && STATE.config.targetBudget) {
+                        const dailyTarget = STATE.config.targetBudget / 30; // Approx
+                        if (totalRevenue < dailyTarget * 0.5) {
+                            APP.supervisor.report("SALES_UNDERPERFORMING", { revenue: totalRevenue, target: dailyTarget });
+                        }
+                    }
+                },
+                report: async (evtType, data) => {
+                    console.log(`[AZI SUPERVISOR] Reporting: ${evtType}`, data);
+                    if (window.pywebview && window.pywebview.api) {
+                        // Send to Python -> AZI Server
+                        // We use the existing sync_telemetry channel but with a special type
+                        if (STATE.license.active && STATE.license.key) {
+                            await window.pywebview.api.sync_telemetry(STATE.license.key, "supervisor_event", JSON.stringify({
+                                type: evtType,
+                                payload: data,
+                                timestamp: new Date().toISOString()
+                            }));
+                        }
+                    }
+                }
+            },
+
+            nav: (v) => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('nav-' + v).classList.add('active');
+                document.querySelectorAll('main > div').forEach(e => e.classList.add('hidden'));
+                document.getElementById('view-' + v).classList.remove('hidden');
+
+                if (v === 'dashboard') {
+                    APP.render.dashboard();
+                    // Trigger Supervisor Check on Dashboard View
+                    APP.supervisor.checkStockHealth();
+                }
+            },
+            actions: {
+                clearDailySales: () => {
+                    Swal.fire({
+                        title: 'Satışları Sıfırla',
+                        text: 'Tüm günlük ve geçmiş satış kayıtları silinecektir. Stoklar etkilenmez. Emin misiniz?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Evet, Sil',
+                        cancelButtonText: 'İptal',
+                        customClass: { popup: 'glass bg-[#0f172a] text-white', confirmButton: 'bg-red-600' }
+                    }).then(r => { if (r.isConfirmed) db.clearCollection('daily_sales'); });
+                },
+                clearCountReports: () => {
+                    Swal.fire({
+                        title: 'Geçmişi Temizle',
+                        text: 'Tüm haftalık sayım raporları ve analiz geçmişi silinecektir. Emin misiniz?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Evet, Sil',
+                        cancelButtonText: 'İptal',
+                        customClass: { popup: 'glass bg-[#0f172a] text-white', confirmButton: 'bg-red-600' }
+                    }).then(r => { if (r.isConfirmed) db.clearCollection('count_reports'); });
+                },
+                resetSystem: () => {
+                    Swal.fire({ title: 'Sistemi Sıfırla', text: 'Her şey silinecek. Emin misiniz?', icon: 'warning', showCancelButton: true }).then(async r => {
+                        if (r.isConfirmed) {
+                            await db.clearCollection('raw_stock');
+                            await db.clearCollection('products');
+                            await db.clearCollection('daily_sales');
+                            await db.clearCollection('count_reports');
+                            location.reload();
+                        }
+                    });
+                },
+                saveStock: () => {
+                    const name = document.getElementById('stock-name').value;
+                    const unit = document.getElementById('stock-unit').value;
+                    const price = parseFloat(document.getElementById('stock-price').value);
+                    const quantity = parseFloat(document.getElementById('stock-quantity').value);
+                    db.addDoc('raw_stock', { name, unit, price, quantity });
+                    document.getElementById('modal-stock').classList.add('hidden');
+                },
+                updateStockQuantity: () => {
+                    const id = document.getElementById('update-stock-id').value;
+                    const add = parseFloat(document.getElementById('add-quantity').value);
+                    const stock = STATE.rawStock.find(s => s.id === id);
+                    db.updateDoc('raw_stock', id, { quantity: stock.quantity + add });
+                    document.getElementById('modal-update-stock').classList.add('hidden');
+                },
+                addRecipeInput: () => {
+                    const html = `<div class="flex gap-2"><select class="input-alpha text-xs flex-1">${STATE.rawStock.map(s => `<option value="${s.id}">${s.name}</option>`)}</select><input type="number" class="input-alpha w-20 text-xs" placeholder="Mik." step="any"></div>`;
+                    document.getElementById('recipe-inputs').innerHTML += html;
+                },
+                saveProduct: () => {
+                    const name = document.getElementById('product-name').value;
+                    const price = parseFloat(document.getElementById('product-price').value);
+                    const recipe = Array.from(document.querySelectorAll('#recipe-inputs > div')).map(d => ({ stockId: d.querySelector('select').value, quantity: parseFloat(d.querySelector('input').value) }));
+                    db.addDoc('products', { name, price, recipe });
+                    document.getElementById('modal-product').classList.add('hidden');
+                },
+                addSaleInput: () => {
+                    const html = `<div class="flex gap-2"><select class="input-alpha text-xs flex-1" onchange="APP.render.updateSaleTotal()">${STATE.products.map(p => `<option value="${p.id}">${p.name} - ₺${p.price}</option>`)}</select><input type="number" class="input-alpha w-20 text-xs" value="1" oninput="APP.render.updateSaleTotal()"></div>`;
+                    document.getElementById('sale-inputs').innerHTML += html;
+                    APP.render.updateSaleTotal();
+                },
+                processDailySale: () => {
+                    const sales = Array.from(document.querySelectorAll('#sale-inputs > div')).map(d => ({ productId: d.querySelector('select').value, quantity: parseInt(d.querySelector('input').value) }));
+                    sales.forEach(s => {
+                        const p = STATE.products.find(x => x.id === s.productId);
+                        p.recipe.forEach(r => {
+                            const stock = STATE.rawStock.find(st => st.id === r.stockId);
+                            db.updateDoc('raw_stock', stock.id, { quantity: stock.quantity - (r.quantity * s.quantity) });
+                        });
+                    });
+                    db.addDoc('daily_sales', { date: TODAY, timestamp: Date.now(), sales });
+                    document.getElementById('modal-daily-sale').classList.add('hidden');
+                },
+                startWeeklyCount: () => {
+                    document.getElementById('physical-count-inputs').innerHTML = STATE.rawStock.map(s => `<div class="flex items-center gap-2"><label class="flex-1 text-sm">${s.name}:</label><input type="number" data-id="${s.id}" class="input-alpha w-24 text-center" value="${s.quantity}" step="any"></div>`).join('');
+                    document.getElementById('modal-weekly-count').classList.remove('hidden');
+                },
+                finalizeWeeklyCount: () => {
+                    const title = document.getElementById('report-title').value;
+                    const details = Array.from(document.querySelectorAll('#physical-count-inputs input')).map(i => {
+                        const id = i.dataset.id;
+                        const s = STATE.rawStock.find(x => x.id === id);
+                        const phys = parseFloat(i.value);
+                        const diff = phys - s.quantity;
+                        db.updateDoc('raw_stock', id, { quantity: phys });
+                        return { stockName: s.name, differenceQty: diff, differenceCost: diff * s.price, unit: s.unit };
+                    });
+                    const diffSum = details.reduce((a, b) => a + b.differenceCost, 0);
+                    db.addDoc('count_reports', { title, date: TODAY, timestamp: Date.now(), differenceCost: diffSum, details });
+                    document.getElementById('modal-weekly-count').classList.add('hidden');
+                },
+                printShortageList: () => window.print()
+            },
+            render: {
+                stock: () => {
+                    document.getElementById('stock-tbody').innerHTML = STATE.rawStock.map(s => `<tr><td class="p-4">${s.name}</td><td class="p-4 text-brand-400 font-bold">${s.quantity.toFixed(2)} ${s.unit}</td><td class="p-4">₺${s.price}</td><td class="p-4 text-right"><button onclick="APP.modals.editStock('${s.id}')" class="text-brand-400 mr-4">Ekle</button><button onclick="db.deleteDoc('raw_stock','${s.id}')" class="text-red-500">Sil</button></td></tr>`).join('');
+                    document.getElementById('stock-empty').className = STATE.rawStock.length ? 'hidden' : 'p-12 text-center text-slate-600';
+                },
+                recipes: () => {
+                    document.getElementById('product-list').innerHTML = STATE.products.map(p => `<div class="p-4 flex justify-between glass-card rounded-lg"><div><h4 class="font-bold">${p.name}</h4><p class="text-xs text-brand-400">₺${p.price}</p></div><button onclick="db.deleteDoc('products','${p.id}')" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button></div>`).join('');
+                    document.getElementById('product-empty').className = STATE.products.length ? 'hidden' : 'p-12 text-center text-slate-600';
+                },
+                sales: () => {
+                    const today = STATE.dailySales.filter(s => s.date === TODAY);
+                    document.getElementById('daily-sales-list').innerHTML = today.map(s => s.sales.map(item => {
+                        const p = STATE.products.find(x => x.id === item.productId);
+                        return `<p class="text-sm flex justify-between"><span>${p.name}</span><span>${item.quantity} Ad.</span></p>`;
+                    }).join('')).join('');
+                    document.getElementById('past-sales-list').innerHTML = STATE.dailySales.filter(s => s.date !== TODAY).map(s => `<div class="text-xs p-2 bg-slate-800 rounded mb-1">${s.date} Satış Kaydı</div>`).join('');
+                },
+                countReports: () => {
+                    document.getElementById('count-reports-tbody').innerHTML = STATE.countReports.map(r => `<tr><td class="p-4">${r.title}</td><td class="p-4">${r.date}</td><td class="p-4 ${r.differenceCost < 0 ? 'text-red-400' : 'text-brand-400'}">₺${r.differenceCost.toFixed(2)}</td><td class="p-4 text-right"><button onclick="APP.render.showReportDetails('${r.id}')" class="text-brand-400 mr-4"><i class="fa-solid fa-eye"></i> Detay</button><button onclick="db.deleteDoc('count_reports','${r.id}')" class="text-red-500">Sil</button></td></tr>`).join('');
+                },
+                showReportDetails: (reportId) => {
+                    const report = STATE.countReports.find(r => r.id === reportId);
+                    if (!report) return;
+
+                    let detailHTML = `
+                        <h4 class="text-md font-bold text-white mb-3">Stok Farkları Detayı</h4>
+                        <div class="space-y-2 text-sm text-left max-h-60 overflow-y-auto">
+                    `;
+
+                    const items = (report.details || []);
+                    items.forEach(item => {
+                        const isMinus = item.differenceQty < 0;
+                        const colorClass = isMinus ? 'text-red-400' : (item.differenceQty > 0 ? 'text-brand-400' : 'text-slate-500');
+                        const prefix = item.differenceQty > 0 ? '+' : '';
+                        detailHTML += `<p class="${colorClass}">- ${item.stockName}: ${prefix}${item.differenceQty.toFixed(2)} ${item.unit} (Fark: ₺${item.differenceCost.toFixed(2)})</p>`;
+                    });
+
+                    if (items.length === 0) {
+                        detailHTML += `<p class="text-slate-500">Bu raporda stok farkı bulunamadı.</p>`;
+                    }
+
+                    Swal.fire({
+                        title: `${report.title || 'Sayım Raporu Detay'}`,
+                        html: detailHTML,
+                        icon: 'info',
+                        width: '500px',
+                        customClass: { popup: 'glass bg-[#0f172a] text-white', confirmButton: 'btn-brand' },
+                        confirmButtonText: 'Kapat',
+                    });
+                },
+                updateSaleTotal: () => {
+                    let total = 0;
+                    document.querySelectorAll('#sale-inputs > div').forEach(d => {
+                        const p = STATE.products.find(x => x.id === d.querySelector('select').value);
+                        total += (p.price * parseInt(d.querySelector('input').value));
+                    });
+                    document.getElementById('sale-total-amount').innerText = `₺${total.toFixed(2)}`;
+                },
+                analysis: () => {
+                    const last = STATE.countReports[STATE.countReports.length - 1];
+                    if (!last) return;
+                    document.getElementById('critical-shortage-list').innerHTML = last.details.filter(d => d.differenceQty < 0).map(d => `<div class="p-2 bg-red-900/30 rounded text-xs">${d.stockName}: ${Math.abs(d.differenceQty).toFixed(2)} ${d.unit} Eksik</div>`).join('');
+                },
+                dashboard: () => {
+                    const stockVal = STATE.rawStock.reduce((a, b) => a + (b.price * b.quantity), 0);
+                    const dailyRev = STATE.dailySales.filter(s => s.date === TODAY).reduce((a, s) => a + s.sales.reduce((acc, item) => acc + (STATE.products.find(x => x.id === item.productId).price * item.quantity), 0), 0);
+
+                    let totalFire = 0;
+                    let totalGain = 0;
+                    STATE.countReports.forEach(r => {
+                        if (r.differenceCost < 0) totalFire += Math.abs(r.differenceCost);
+                        else totalGain += r.differenceCost;
+                    });
+
+                    document.getElementById('dash-stock-value').innerText = `₺${stockVal.toFixed(0)}`;
+                    document.getElementById('dash-daily-revenue').innerText = `₺${dailyRev.toFixed(0)}`;
+                    document.getElementById('dash-waste-cost').innerText = `₺${totalFire.toFixed(0)}`;
+                    document.getElementById('dash-gain-cost').innerText = `₺${totalGain.toFixed(0)}`;
+                    document.getElementById('dash-critical-count').innerText = STATE.rawStock.filter(s => s.quantity < 2).length;
+
+                    // Chart Updates (Placeholder for now, logic calls ChartJS)
+                    APP.charts.update();
+                }
+            },
+            charts: {
+                init: () => {
+                    // Charts initializations (Consumption, Sales, Recipe)
+                    // Implementing basic config for defined canvases
+                    const ctx1 = document.getElementById('dashboardConsumptionChart');
+                    if (ctx1) STATE.charts.consumption = new Chart(ctx1, { type: 'bar', data: { labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'], datasets: [{ label: 'Maliyet', data: [100, 150, 80, 200, 120, 90, 130], backgroundColor: '#3b82f6' }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#334155' } }, x: { grid: { display: false } } } } });
+
+                    const ctx2 = document.getElementById('dashboardSalesChart');
+                    if (ctx2) STATE.charts.sales = new Chart(ctx2, { type: 'line', data: { labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'], datasets: [{ label: 'Adet', data: [5, 12, 8, 20, 15, 7, 10], borderColor: '#10b981', tension: 0.4 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#334155' } }, x: { grid: { display: false } } } } });
+
+                    const ctx3 = document.getElementById('dashboardRecipeCostChart');
+                    if (ctx3) STATE.charts.recipe = new Chart(ctx3, { type: 'doughnut', data: { labels: ['Kahve', 'Süt', 'Şeker'], datasets: [{ data: [30, 50, 20], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } } });
+
+                    const ctx4 = document.getElementById('analysisTopStockChart');
+                    if (ctx4) STATE.charts.analysis = new Chart(ctx4, { type: 'bar', data: { labels: ['Ürün A', 'Ürün B'], datasets: [{ label: 'Stok', data: [50, 20], backgroundColor: '#3b82f6' }] }, options: { indexAxis: 'y' } });
+                },
+                update: () => {
+                    // Update chart data from STATE here if needed
+                }
+            },
+            modals: {
+                addStock: () => document.getElementById('modal-stock').classList.remove('hidden'),
+                addProduct: () => { document.getElementById('recipe-inputs').innerHTML = ''; APP.actions.addRecipeInput(); document.getElementById('modal-product').classList.remove('hidden'); },
+                addDailySale: () => { document.getElementById('sale-inputs').innerHTML = ''; APP.actions.addSaleInput(); document.getElementById('modal-daily-sale').classList.remove('hidden'); },
+                editStock: (id) => { document.getElementById('update-stock-id').value = id; document.getElementById('update-stock-name').innerText = STATE.rawStock.find(s => s.id === id).name; document.getElementById('modal-update-stock').classList.remove('hidden'); }
+            }
+        };
+
+        window.setInterval(() => { document.getElementById('current-time').innerText = new Date().toLocaleTimeString(); }, 1000);
+        window.addEventListener('pywebviewready', () => {
+            APP.data.load();
+            APP.charts.init();
+        });
+    </script>
+</body>
+
+</html>

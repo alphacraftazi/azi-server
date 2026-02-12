@@ -1,0 +1,19 @@
+/* CARD VIEW */
+.cyber-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.cyber-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+    border-color: rgba(0, 242, 255, 0.5);
+}
+
+.cyber-card h3 {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+}

@@ -1,0 +1,125 @@
+{
+    "raw_stock": [
+        {
+            "id": "p9e2igela",
+            "name": "kahve çekirdeği",
+            "unit": "kg",
+            "price": 150,
+            "quantity": 0.5
+        },
+        {
+            "id": "e773ihjxk",
+            "name": "süt",
+            "unit": "lt",
+            "price": 60,
+            "quantity": 2
+        }
+    ],
+    "products": [
+        {
+            "id": "tl542hbmm",
+            "name": "latte",
+            "price": 200,
+            "recipe": [
+                {
+                    "stockId": "p9e2igela",
+                    "quantity": 0.03
+                },
+                {
+                    "stockId": "p9e2igela",
+                    "quantity": 0.2
+                }
+            ]
+        },
+        {
+            "id": "s0ta5g0ei",
+            "name": "capicone",
+            "price": 250,
+            "recipe": [
+                {
+                    "stockId": "p9e2igela",
+                    "quantity": 0.03
+                },
+                {
+                    "stockId": "e773ihjxk",
+                    "quantity": 0.18
+                }
+            ]
+        }
+    ],
+    "daily_sales": [
+        {
+            "id": "kfi5o9k71",
+            "date": "10.01.2026",
+            "timestamp": 1768054220656,
+            "sales": [
+                {
+                    "productId": "tl542hbmm",
+                    "quantity": 5
+                }
+            ]
+        },
+        {
+            "id": "h49otzgek",
+            "date": "31.01.2026",
+            "timestamp": 1769847942886,
+            "sales": [
+                {
+                    "productId": "tl542hbmm",
+                    "quantity": 10
+                },
+                {
+                    "productId": "s0ta5g0ei",
+                    "quantity": 20
+                }
+            ]
+        }
+    ],
+    "count_reports": [
+        {
+            "id": "ptjekwp30",
+            "title": "10.11",
+            "date": "10.01.2026",
+            "timestamp": 1768054244790,
+            "differenceCost": -180,
+            "details": [
+                {
+                    "stockName": "kahve çekirdeği",
+                    "differenceQty": -2,
+                    "differenceCost": -300,
+                    "unit": "kg"
+                },
+                {
+                    "stockName": "süt",
+                    "differenceQty": 2,
+                    "differenceCost": 120,
+                    "unit": "lt"
+                }
+            ]
+        },
+        {
+            "id": "mewej0ntk",
+            "title": "31.01.2026 sayımı",
+            "date": "31.01.2026",
+            "timestamp": 1769847987336,
+            "differenceCost": -99.00000000000003,
+            "details": [
+                {
+                    "stockName": "kahve çekirdeği",
+                    "differenceQty": -0.8999999999999999,
+                    "differenceCost": -135,
+                    "unit": "kg"
+                },
+                {
+                    "stockName": "süt",
+                    "differenceQty": 0.5999999999999996,
+                    "differenceCost": 35.99999999999998,
+                    "unit": "lt"
+                }
+            ]
+        }
+    ],
+    "license_status": {
+        "active": true
+    }
+}

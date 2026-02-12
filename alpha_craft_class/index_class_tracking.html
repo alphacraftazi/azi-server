@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Craft Class - Enterprise ERP v15.5</title>
+
+    <!-- Profesyonel Kütüphaneler -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
+                        brand: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 900: '#78350f' },
+                        accent: { primary: '#10b981', secondary: '#0ea5e9', danger: '#ef4444', success: '#10b981' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .input-alpha {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            transition: 0.3s;
+            font-size: 12px;
+        }
+
+        .input-alpha:focus {
+            border-color: #f59e0b;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-brand {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-brand:hover {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: rgba(120, 53, 15, 0.5);
+            color: #fbbf24;
+            font-weight: bold;
+            border-left: 3px solid #f59e0b;
+        }
+
+        /* Kare Matris Tasarımı */
+        .matrix-square {
+            width: 105px;
+            height: 105px;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            margin: 1px;
+            position: relative;
+        }
+
+        .matrix-square:hover {
+            transform: scale(1.05);
+            border-color: #f59e0b;
+            z-index: 10;
+            background: rgba(245, 158, 11, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .matrix-square.empty {
+            background: rgba(255, 255, 255, 0.02);
+            color: #475569;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .matrix-square.empty:hover {
+            color: #f59e0b;
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        /* Gün Seçim Kutucukları */
+        .day-selection-box {
+            @apply flex items-center justify-between p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800 transition-all select-none w-full;
+        }
+
+        .day-selection-box input {
+            @apply w-5 h-5 accent-brand-500 cursor-pointer;
+        }
+
+        .day-selection-box span {
+            @apply text-[10px] font-bold uppercase text-slate-400 flex-1 ml-3;
+        }
+
+        .day-selection-box input:checked+span {
+            @apply text-brand-400;
+        }
+
+        .day-selection-box.active {
+            @apply border-brand-500 bg-brand-900/10;
+        }
+
+        /* Yoklama Tarih Kutucukları */
+        .att-date-box {
+            @apply p-1.5 rounded-lg border text-center transition-all cursor-pointer select-none;
+        }
+
+        .att-date-box.present {
+            @apply bg-brand-600 border-brand-400 text-white shadow-md shadow-brand-900/50;
+        }
+
+        .att-date-box.absent {
+            @apply bg-red-600 border-red-400 text-white shadow-md shadow-red-900/50;
+        }
+
+        .att-date-box.pending {
+            @apply bg-slate-800 border-slate-700 text-slate-400;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 10px;
+        }
+
+        .custom-modal-scroll {
+            max-height: 85vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* ----------------------------------------------------
+           OPENING ANIMATION (LOADER)
+           ---------------------------------------------------- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .loader-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fbbf24 0%, #78350f 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+                transform: scale(1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(245, 158, 11, 0);
+                transform: scale(1.05);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+                transform: scale(1);
+            }
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .loader-sub {
+            font-size: 10px;
+            color: #fbbf24;
+            letter-spacing: 2px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- SPLASH SCREEN (Stock Style - Yellow) -->
+    <div id="splash-screen"
+        class="fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="relative animate-pulse">
+            <div
+                class="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-900/50 border border-brand-500/20">
+                <span class="font-bold text-4xl text-white font-sans">A</span>
+            </div>
+        </div>
+        <h1 class="mt-8 text-3xl font-bold text-white tracking-widest">ALPHA CRAFT <span
+                class="text-brand-400 text-[10px] align-middle ml-2 font-bold tracking-widest border border-brand-400/30 px-1.5 py-0.5 rounded uppercase">CLASS</span>
+        </h1>
+        <div
+            class="mt-2 text-brand-400 font-light text-sm tracking-[0.5em] uppercase border-t border-brand-900/50 pt-2">
+            ARTIK KOLAY</div>
+
+        <!-- Loading Bar -->
+        <div class="w-64 h-1 bg-slate-800 rounded-full mt-8 overflow-hidden relative">
+            <div id="splash-progress"
+                class="h-full bg-brand-400 shadow-[0_0_10px_rgba(245,158,11,0.5)] w-0 transition-all duration-[2000ms] ease-out">
+            </div>
+        </div>
+        <div class="mt-2 text-xs text-slate-500 font-mono">Sınıf Otomasyonu Yükleniyor...</div>
+    </div>
+
+    <header class="h-16 glass flex items-center justify-between px-6 z-50 shrink-0 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-brand-400 to-brand-900 rounded-lg flex items-center justify-center shadow-lg shadow-brand-900/30">
+                <span class="font-bold text-2xl text-white">A</span>
+            </div>
+            <h1 class="text-lg font-bold tracking-tight text-white uppercase">ALPHA CRAFT <span
+                    class="text-brand-400 font-bold ml-1 text-sm tracking-widest">CLASS</span></h1>
+        </div>
+        <div class="flex gap-4 items-center">
+            <div id="sync-status" class="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                <span id="sync-dot" class="w-2 h-2 bg-slate-600 rounded-full"></span> Kimlik Doğrulanıyor...
+            </div>
+            <!-- Demo Button Removed as per request -->
+            <button onclick="APP.actions.autoAssign()"
+                class="bg-brand-600 hover:bg-brand-500 text-white px-5 py-2 rounded-full text-[10px] font-bold shadow-lg transition uppercase tracking-tighter">AI
+                Otomatik Atama</button>
+            <div class="text-sm font-mono text-slate-400" id="current-time">00:00:00</div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 glass border-r border-slate-800 flex flex-col z-40 shrink-0">
+            <div class="p-6 space-y-6">
+                <div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4 pl-2">Operasyonel</p>
+                    <nav class="space-y-1">
+                        <button onclick="APP.nav('dashboard')" id="nav-dashboard"
+                            class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs active"><i
+                                class="fa-solid fa-gauge-high w-4"></i> Vizyon Paneli</button>
+                        <button onclick="APP.nav('birdseye')" id="nav-birdseye"
+                            class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-map-location-dot w-4"></i> Mekan Analizi</button>
+                    </nav>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4 pl-2">Yönetim</p>
+                    <nav class="space-y-1">
+                        <button onclick="APP.nav('students')" id="nav-students"
+                            class="nav-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-user-graduate w-4"></i> Öğrenciler <span id="alert-unassigned"
+                                class="hidden ml-auto bg-red-600 text-white text-[8px] px-1.5 rounded-full font-bold animate-pulse">0</span></button>
+                        <button onclick="APP.nav('teachers')" id="nav-teachers"
+                            class="nav-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-chalkboard-user w-4"></i> Eğitmenler</button>
+                        <button onclick="APP.nav('products')" id="nav-products"
+                            class="nav-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-box-open w-4"></i> Paketler</button>
+                        <button onclick="APP.nav('classrooms')" id="nav-classrooms"
+                            class="nav-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-school w-4"></i> Sınıflar</button>
+                    </nav>
+                </div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4 pl-2">Sistem</p>
+                    <nav class="space-y-1">
+                        <button onclick="APP.nav('settings')" id="nav-settings"
+                            class="nav-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 text-slate-400 hover:text-brand-400 transition-all text-xs"><i
+                                class="fa-solid fa-sliders w-4"></i> Ayarlar</button>
+                    </nav>
+                </div>
+            </div>
+            <div class="mt-auto p-6 border-t border-slate-800/50 text-center">
+                <p class="text-[8px] text-slate-500 uppercase font-bold mb-1">Maliyet/Gelir Dengesi</p>
+                <span class="text-sm font-bold text-white" id="profit-kpi">₺0</span>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-[#020617] relative overflow-y-auto p-6" id="main-content">
+            <!-- VİZYON PANELİ -->
+            <div id="view-dashboard" class="space-y-6">
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-brand-500">
+                        <h3 class="text-[9px] text-slate-500 font-bold uppercase mb-1">Toplam Öğrenci</h3><span
+                            class="text-xl font-bold text-white" id="stat-total-students">0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-accent-secondary">
+                        <h3 class="text-[9px] text-slate-500 font-bold uppercase mb-1">Toplam Tahsilat</h3><span
+                            class="text-xl font-bold text-white" id="stat-total-paid">₺0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-accent-primary">
+                        <h3 class="text-[9px] text-slate-500 font-bold uppercase mb-1">Biten Seviye</h3><span
+                            class="text-xl font-bold text-white" id="stat-completed-levels">0</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-accent-danger">
+                        <h3 class="text-[9px] text-slate-500 font-bold uppercase mb-1">Müsait Oda</h3><span
+                            class="text-xl font-bold text-white" id="stat-avail-rooms">0</span>
+                    </div>
+                </div>
+
+                <div class="glass p-1 rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
+                    <div
+                        class="bg-slate-900/50 p-3 border-b border-slate-800 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                        <span>Zaman & Fiziksel Oda Operasyon Matrisi (Kuşbakışı)</span>
+                        <select id="matrix-day-filter" onchange="APP.render.dashboardBirdseye()"
+                            class="bg-slate-800 text-white border-none rounded px-3 py-1 outline-none">
+                            <option value="Bugün">Bugün</option>
+                            <option value="Pazartesi">Pazartesi</option>
+                            <option value="Salı">Salı</option>
+                            <option value="Çarşamba">Çarşamba</option>
+                            <option value="Perşembe">Perşembe</option>
+                            <option value="Cuma">Cuma</option>
+                            <option value="Cumartesi">Cumartesi</option>
+                            <option value="Pazar">Pazar</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto p-3">
+                        <table class="w-full border-separate border-spacing-1" id="dash-matrix-table"></table>
+                    </div>
+                </div>
+
+                <!-- ADDED: Floor Map in Dashboard -->
+                <div id="dashboard-floor-plan" class="space-y-4"></div>
+
+                <!-- ADDED: AI Suggestions -->
+                <div id="dashboard-ai-suggestions" class="space-y-4 mt-6"></div>
+            </div>
+
+            <!-- Diğer Sekmeler -->
+            <div id="view-birdseye" class="hidden space-y-6">
+                <!-- Can be duplicated or removed since it is moved to dashboard, specifically user wanted visibility in vision panel -->
+                <div id="floor-maps-container" class="space-y-8"></div>
+            </div>
+            <div id="view-students" class="hidden space-y-6">
+                <div class="flex justify-between items-center bg-glass p-4 rounded-xl border border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-tighter"><i
+                            class="fa-solid fa-user-graduate text-brand-400"></i> Öğrenci Portföyü</h2>
+                    <div class="flex gap-2"><input id="student-search" oninput="APP.render.students()"
+                            placeholder="Öğrenci Ara..." class="input-alpha w-48 py-1"><button
+                            onclick="APP.modals.addStudent()"
+                            class="btn-brand px-5 py-2 text-xs uppercase font-bold shadow-lg shadow-brand-900/50">Yeni
+                            Kayıt</button></div>
+                </div>
+                <div class="glass rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-slate-400 uppercase text-[10px] font-bold">
+                            <tr>
+                                <th class="p-4">Öğrenci & Yaş</th>
+                                <th class="p-4">Kur Durumu</th>
+                                <th class="p-4">Devamsızlık</th>
+                                <th class="p-4">Kariyer Skoru</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-tbody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="view-teachers" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold uppercase tracking-tighter text-white">Eğitmen Kadrosu</h2><button
+                        onclick="APP.modals.addTeacher()"
+                        class="btn-brand px-5 py-2 text-xs font-bold uppercase shadow-lg shadow-brand-900/50">Eğitmen
+                        Ekle</button>
+                </div>
+                <div class="grid grid-cols-3 gap-4" id="teacher-grid"></div>
+            </div>
+            <div id="view-products" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold uppercase tracking-tighter text-white">Eğitim Paketleri</h2><button
+                        onclick="APP.modals.addProduct()"
+                        class="btn-brand px-5 py-2 text-xs font-bold uppercase shadow-lg shadow-brand-900/50">Paket
+                        Tanımla</button>
+                </div>
+                <div class="grid grid-cols-3 gap-4" id="products-grid"></div>
+            </div>
+            <div id="view-classrooms" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold uppercase tracking-tighter text-white">Sınıf Planlama</h2><button
+                        onclick="APP.modals.addClassroom()"
+                        class="btn-brand px-5 py-2 text-xs font-bold uppercase shadow-lg shadow-brand-900/50">Yeni
+                        Program</button>
+                </div>
+                <div class="grid grid-cols-3 gap-4" id="classroom-grid"></div>
+            </div>
+
+            <div id="view-settings" class="hidden space-y-6">
+                <div
+                    class="glass p-1 rounded-xl border border-slate-800 flex text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">
+                    <button onclick="APP.renderSettingsTab('general')" id="tab-btn-general"
+                        class="flex-1 py-3 hover:text-white hover:bg-slate-800 rounded-lg transition active text-brand-400 bg-slate-800">Genel
+                        & Kurum</button>
+                    <button onclick="APP.renderSettingsTab('time')" id="tab-btn-time"
+                        class="flex-1 py-3 hover:text-white hover:bg-slate-800 rounded-lg transition">Zaman &
+                        Seans</button>
+                    <button onclick="APP.renderSettingsTab('academic')" id="tab-btn-academic"
+                        class="flex-1 py-3 hover:text-white hover:bg-slate-800 rounded-lg transition">Akademi &
+                        Kurallar</button>
+                    <button onclick="APP.renderSettingsTab('rooms')" id="tab-btn-rooms"
+                        class="flex-1 py-3 hover:text-white hover:bg-slate-800 rounded-lg transition">Fiziksel
+                        Odalar</button>
+                </div>
+
+                <!-- TAB: GENERAL -->
+                <div id="set-tab-general" class="settings-tab-content space-y-6">
+                    <div class="glass p-6 rounded-xl space-y-4 max-w-2xl">
+                        <h4
+                            class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                            Kurum Kimliği</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">KURUM ADI</label><input
+                                    id="st-name" class="input-alpha" onchange="APP.actions.saveSettings()"
+                                    placeholder="Örn: Alpha Fen Bilimleri"></div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">KURUM TİPİ</label><select
+                                    id="st-type" class="input-alpha" onchange="APP.actions.saveSettings()">
+                                    <option value="Dershane">Dershane / Kurs</option>
+                                    <option value="Etüt">Etüt Merkezi</option>
+                                    <option value="Dil">Dil Kursu</option>
+                                    <option value="Sanat">Sanat / Spor Okulu</option>
+                                </select></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: TIME -->
+                <div id="set-tab-time" class="settings-tab-content hidden space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="glass p-6 rounded-xl space-y-4">
+                            <h4
+                                class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                                Global Zaman Ayarları</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">VARSAYILAN DERS
+                                        (DK)</label><input id="st-ldur" type="number" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">VARSAYILAN MOLA
+                                        (DK)</label><input id="st-bdur" type="number" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">MESAİ
+                                        BAŞLANGIÇ</label><input id="st-start" type="time" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">MESAİ
+                                        BİTİŞ</label><input id="st-end" type="time" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()"></div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-6 rounded-xl space-y-4">
+                            <h4
+                                class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                                Seans Şablonları (Otomatik Atama İçin)</h4>
+                            <div id="setting-sessions-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                            <!-- ... Session add form (simplified) ... -->
+                            <div class="pt-2 border-t border-slate-800 text-center"><button
+                                    onclick="APP.modals.openSessionManager()"
+                                    class="text-xs text-brand-500 hover:text-white underline">Seans Yöneticisini
+                                    Aç</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ACADEMIC -->
+                <div id="set-tab-academic" class="settings-tab-content hidden space-y-6">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="glass p-6 rounded-xl space-y-4">
+                            <h4
+                                class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                                Eğitim Seviyeleri</h4>
+                            <p class="text-[9px] text-slate-500">Öğrencilerin atanabileceği seviyeleri virgülle ayırarak
+                                yazın.</p>
+                            <textarea id="st-levels" class="input-alpha h-32" onchange="APP.actions.saveSettings()"
+                                placeholder="Örn: 9. Sınıf, 10. Sınıf..."></textarea>
+                        </div>
+                        <div class="glass p-6 rounded-xl space-y-4">
+                            <h4
+                                class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                                Kural Motoru</h4>
+                            <div class="space-y-4">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">DEVAMSIZLIK SINIRI
+                                        (DERS)</label><input id="st-alimit" type="number" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">SINIR AŞIMINDA
+                                        AKSİYON</label><select id="st-action" class="input-alpha"
+                                        onchange="APP.actions.saveSettings()">
+                                        <option value="warning">Sadece Uyar (Sarı Kart)</option>
+                                        <option value="fail">Kur Tekrarı (Kırmızı Kart)</option>
+                                    </select></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ROOMS -->
+                <div id="set-tab-rooms" class="settings-tab-content hidden space-y-6">
+                    <div class="glass p-6 rounded-xl space-y-4">
+                        <h4
+                            class="text-xs font-bold text-brand-400 uppercase tracking-widest border-b border-slate-800 pb-2">
+                            Binadaki Fiziksel Odalar</h4>
+                        <div id="setting-rooms-list"
+                            class="space-y-2 max-h-96 overflow-y-auto pr-1 grid grid-cols-3 gap-2"></div>
+                        <div class="flex gap-2 pt-4 border-t border-slate-800">
+                            <input id="set-room-name" placeholder="Oda Adı (Örn: A-101)" class="input-alpha">
+                            <input id="set-room-floor" type="number" placeholder="Kat" class="w-24 input-alpha">
+                            <button onclick="APP.actions.addBuildingRoom()"
+                                class="px-6 py-2 bg-brand-600 rounded text-xs font-bold hover:bg-brand-500 transition uppercase shadow-lg">Ekle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </main>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal-container" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center p-4">
+        <div class="glass bg-[#0f172a] w-full max-w-4xl rounded-2xl p-8 border border-slate-700 shadow-2xl relative"
+            id="modal-content"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : 'null');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'alpha-tutoring-final-v15';
+        let db, auth, user;
+
+        // --- DYNAMIC SERVER CONFIG ---
+        let API_SERVER_URL = "http://localhost:8001"; // Default
+        async function initServerConfig() {
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    const url = await window.pywebview.api.get_server_url();
+                    if (url) {
+                        API_SERVER_URL = url;
+                        console.log("Server URL updated from Config:", API_SERVER_URL);
+                    }
+                } catch (e) { console.error("Server URL fetch failed:", e); }
+            }
+        }
+        // Call immediately
+        initServerConfig();
+
+
+        initServerConfig();
+
+        // --- DATA LAYER (Stock Style Port) ---
+        class PersistentDB {
+            constructor() { this.inMemory = {}; this.subs = {}; }
+            async _set(c, d) {
+                this.inMemory[c] = d;
+                if (window.pywebview && window.pywebview.api) {
+                    await window.pywebview.api.save_data(c, JSON.stringify(d));
+                }
+                this._notify(c);
+            }
+            async clearCollection(c) { await this._set(c, []); }
+            onSnapshot(c, cb) { if (!this.subs[c]) this.subs[c] = []; this.subs[c].push(cb); }
+            _notify(c) {
+                const d = this.inMemory[c] || [];
+                // Allow both array and single obj logic
+                const snap = { docs: d.map(x => ({ id: x.id, data: () => x })), data: () => d };
+                if (this.subs[c]) this.subs[c].forEach(fn => fn(snap));
+            }
+            async addDoc(c, data) { const list = this.inMemory[c] || []; const id = Math.random().toString(36).substr(2, 9); list.push({ id, ...data }); await this._set(c, list); return id; }
+            async deleteDoc(c, id) { let list = (this.inMemory[c] || []).filter(x => x.id !== id); await this._set(c, list); }
+            async updateDoc(c, id, data) { let list = this.inMemory[c] || []; const i = list.findIndex(x => x.id === id); if (i !== -1) list[i] = { ...list[i], ...data }; await this._set(c, list); }
+            async setDoc(c, id, data) {
+                // Settings special case: usually singleton 'global'
+                if (c === 'settings') {
+                    // For settings, we might store as list or object. Stock used list.
+                    // Here Class maps settings => global doc.
+                    // We will emulate list with one item id='global'
+                    let list = this.inMemory[c] || [];
+                    const i = list.findIndex(x => x.id === id);
+                    if (i !== -1) list[i] = { ...list[i], ...data };
+                    else list.push({ id, ...data });
+                    await this._set(c, list);
+                } else {
+                    await this.updateDoc(c, id, data);
+                }
+            }
+            // Load Helper
+            async loadAll() {
+                const cols = ['students', 'teachers', 'classrooms', 'products', 'settings'];
+                for (const c of cols) {
+                    if (window.pywebview && window.pywebview.api) {
+                        try {
+                            const res = await window.pywebview.api.load_data(c);
+                            this.inMemory[c] = JSON.parse(res) || [];
+                        } catch (e) { this.inMemory[c] = []; }
+                    }
+                    this._notify(c);
+                }
+            }
+        }
+        const localDB = new PersistentDB();
+
+        window.APP = {
+            data: { students: [], teachers: [], classrooms: [], products: [], settings: { rooms: [], sessions: [] } },
+
+            currentView: 'dashboard',
+            days: ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"],
+
+            nav: (v) => {
+                APP.currentView = v;
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('nav-' + v)?.classList.add('active');
+                document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
+                document.getElementById('view-' + v)?.classList.remove('hidden');
+                APP.render.all();
+            },
+
+            modals: {
+                open: (html) => {
+                    const content = document.getElementById('modal-content');
+                    if (content) content.innerHTML = `<button onclick="APP.modals.close()" class="absolute top-4 right-4 text-slate-500 hover:text-white z-10"><i class="fa-solid fa-xmark text-xl"></i></button>${html}`;
+                    document.getElementById('modal-container').classList.replace('hidden', 'flex');
+                },
+                close: () => document.getElementById('modal-container').classList.replace('flex', 'hidden'),
+
+                // ... (Previous Modals for Product, Student, Teacher remain same, skipping for brevity if unmodified, but here I replace BIG chunk so I include them or carefully partial modify)
+                addProduct: (id = null) => {
+                    const p = id ? APP.data.products.find(x => x.id === id) : null;
+                    APP.modals.open(`
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold uppercase text-white">${id ? 'Paketi Düzenle' : 'Yeni Paket Ekle'}</h3>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">PAKET ADI</label><input id="mp-name" class="input-alpha" value="${p?.name || ''}"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">SEVİYE</label><input id="mp-level" class="input-alpha" value="${p?.level || ''}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">YAŞ GRUBU</label><input id="mp-age" class="input-alpha" value="${p?.age || ''}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">TOPLAM DERS (SAAT)</label><input id="mp-hours" type="number" class="input-alpha" value="${p?.totalHours || ''}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">SONRAKİ KUR</label><input id="mp-next" class="input-alpha" value="${p?.nextLevel || ''}"></div>
+                            </div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">HAFTADA KAÇ GÜN</label><input id="mp-days" type="number" class="input-alpha" value="${p?.daysPerWeek || ''}"></div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">GÜNDE KAÇ DERS</label><input id="mp-lessons" type="number" class="input-alpha" value="${p?.lessonsPerDay || ''}"></div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">EĞİTMEN YETKİNLİĞİ (Branch ID)</label><input id="mp-t-req" class="input-alpha" value="${p?.teacherReq || ''}"></div>
+                            <button onclick="APP.actions.saveProduct('${id || ''}')" class="btn-brand w-full py-3 mt-4">KAYDET</button>
+                        </div>
+                    `);
+                },
+                addStudent: (id = null) => {
+                    const s = id ? APP.data.students.find(x => x.id === id) : null;
+                    const groupOpts = ['Yerleştirilmedi', ...APP.data.classrooms.map(c => c.name)].map(g => `<option value="${g}" ${s?.group === g ? 'selected' : ''}>${g}</option>`).join('');
+                    APP.modals.open(`
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold uppercase text-white">${id ? 'Öğrenci Düzenle' : 'Yeni Kayıt'}</h3>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">AD SOYAD</label><input id="ms-name" class="input-alpha" value="${s?.name || ''}"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">YAŞ</label><input id="ms-age" type="number" class="input-alpha" value="${s?.age || ''}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">TELEFON</label><input id="ms-phone" class="input-alpha" value="${s?.phone || ''}"></div>
+                            </div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">SEVİYE / KUR</label><input id="ms-level" class="input-alpha" value="${s?.level || ''}"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">BİTEN KUR</label><input id="ms-taken" type="number" class="input-alpha" value="${s?.takenLevels || 0}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">KALAN HAK</label><input id="ms-rem" type="number" class="input-alpha" value="${s?.remLevels || 1}"></div>
+                            </div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">ATANAN SINIF</label><select id="ms-class" class="input-alpha">${groupOpts}</select></div>
+                            <button onclick="APP.actions.saveStudent('${id || ''}')" class="btn-brand w-full py-3 mt-4">KAYDET</button>
+                        </div>
+                    `);
+                },
+                addTeacher: (id = null) => {
+                    const t = id ? APP.data.teachers.find(x => x.id === id) : null;
+                    APP.modals.open(`
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold uppercase text-white">${id ? 'Eğitmen Düzenle' : 'Yeni Eğitmen'}</h3>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">AD SOYAD</label><input id="mt-name" class="input-alpha" value="${t?.name || ''}"></div>
+                            <div><label class="text-[9px] font-bold text-slate-500 uppercase">UZMANLIK ALANI</label><input id="mt-branch" class="input-alpha" value="${t?.branch || ''}" placeholder="Örn: Matematik, Native English..."></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">MAAŞ TİPİ</label><select id="mt-type" class="input-alpha"><option>Aylık</option><option>Ders Başı</option></select></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase">TUTAR (TL)</label><input id="mt-amount" type="number" class="input-alpha" value="${t?.salaryAmount || ''}"></div>
+                            </div>
+                            <button onclick="APP.actions.saveTeacher('${id || ''}')" class="btn-brand w-full py-3 mt-4">KAYDET</button>
+                        </div>
+                    `);
+                },
+
+                openSessionManager: () => {
+                    APP.modals.open(`
+                       <div class="space-y-4">
+                           <h3 class="text-xl font-bold uppercase text-white tracking-widest">Yeni Seans Şablonu</h3>
+                           <div class="grid grid-cols-2 gap-4">
+                               <div class="col-span-2"><label class="text-[9px] font-bold text-slate-500 uppercase">SEANS ADI</label><input id="set-session-name" placeholder="Örn: Hafta Sonu Sabah" class="input-alpha"></div>
+                               <div><label class="text-[9px] font-bold text-slate-500 uppercase">BAŞLANGIÇ SAATİ</label><input id="set-session-start" type="time" class="input-alpha" value="09:00"></div>
+                               <div><label class="text-[9px] font-bold text-slate-500 uppercase">GÜNLÜK DERS SAYISI</label><input id="set-session-lessons" type="number" class="input-alpha" value="4"></div>
+                               <div><label class="text-[9px] font-bold text-slate-500 uppercase">DERS SÜRESİ (DK)</label><input id="set-session-lesson-dur" type="number" class="input-alpha" value="40"></div>
+                               <div><label class="text-[9px] font-bold text-slate-500 uppercase">MOLA SÜRESİ (DK)</label><input id="set-session-break-dur" type="number" class="input-alpha" value="10"></div>
+                           </div>
+                           <div>
+                               <label class="text-[9px] font-bold text-slate-500 uppercase block mb-2">GEÇERLİ GÜNLER</label>
+                               <div class="grid grid-cols-3 gap-2">
+                                   ${APP.days.map(d => `<label class="flex items-center gap-2 text-[10px] bg-slate-800 p-2 rounded cursor-pointer hover:bg-slate-700"><input type="checkbox" class="session-days-check accent-brand-500" value="${d}"> ${d}</label>`).join('')}
+                               </div>
+                           </div>
+                           <button onclick="APP.actions.addSession(); APP.modals.close(); APP.render.settingsUI()" class="w-full btn-brand py-3 mt-4">KAYDET VE KAPAT</button>
+                       </div>
+                   `);
+                },
+
+                addClassroom: (id = null, prefill = {}) => {
+                    const c = id ? APP.data.classrooms.find(x => x.id === id) : null;
+                    const roomOpts = APP.data.settings.rooms.map(r => `<option value="${r.name}" ${(c?.name || prefill.room) === r.name ? 'selected' : ''}>${r.name} (K:${r.floor})</option>`).join('');
+                    const prdOpts = APP.data.products.map(p => `<option value="${p.id}" ${c?.productId === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
+                    const teacherOpts = APP.data.teachers.map(t => `<option value="${t.id}" ${c?.teacherId === t.id ? 'selected' : ''}>${t.name}</option>`).join('');
+                    const activeDays = c ? c.days : [];
+
+                    APP.modals.open(`
+                        <div class="space-y-6 custom-modal-scroll">
+                            <h3 class="text-xl font-bold border-b border-slate-800 pb-4 uppercase text-white tracking-widest">Esnek Sınıf Programla</h3>
+                            
+                            <div class="bg-brand-900/20 p-4 rounded-xl border border-brand-500/30 mb-4">
+                                <p class="text-[10px] text-brand-400 font-bold uppercase"><i class="fa-solid fa-circle-info"></i> Hesaplama Modu: Manuel</p>
+                                <p class="text-[9px] text-slate-400">Bu sınıfın saatleri global ayarlardan bağımsız hesaplanacaktır.</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">ODA</label><select id="mc-name" class="input-alpha">${roomOpts}</select></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">EĞİTİM PAKETİ</label><select id="mc-prd" class="input-alpha">${prdOpts}</select></div>
+                                <div class="col-span-2"><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-brand-400">EĞİTMEN ATAMASI</label><select id="mc-tea" class="input-alpha">${teacherOpts || '<option>Eğitmen bulunamadı</option>'}</select></div>
+                                
+                                <!-- FLEXIBLE TIME INPUTS -->
+                                <div class="col-span-2 grid grid-cols-3 gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                                    <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">BAŞLANGIÇ</label><input id="mc-time" type="time" class="input-alpha" value="${c?.startTime || prefill.time || '09:00'}"></div>
+                                    <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">DERS (DK)</label><input id="mc-dur-lesson" type="number" class="input-alpha" value="${c?.lessonDur || 40}"></div>
+                                    <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">MOLA (DK)</label><input id="mc-dur-break" type="number" class="input-alpha" value="${c?.breakDur || 10}"></div>
+                                </div>
+
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">GÜNLÜK DERS SAYISI</label><input id="mc-lesson-count" type="number" class="input-alpha" value="${c?.lessonsPerDay || 3}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">KONTENJAN</label><input id="mc-cap" type="number" class="input-alpha" value="${c?.capacity || 12}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">BAŞLANGIÇ TARİHİ</label><input id="mc-start-date" type="date" class="input-alpha" value="${c?.startDate || ''}"></div>
+                                <div><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">KUR BOYUNCA TOPLAM DERS</label><input id="mc-total-lessons" type="number" class="input-alpha" value="${c?.totalLessons || 24}"></div>
+                            </div>
+                            
+                            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                                <label class="text-[10px] font-bold text-brand-400 uppercase block mb-3 tracking-widest">Ders Günlerini Seçin (Kutucuktan İşaretleyin)</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${APP.days.map(d => `
+                                        <label class="day-selection-box ${activeDays.includes(d) ? 'active' : ''}">
+                                            <span>${d}</span>
+                                            <input type="checkbox" name="lesson_days" value="${d}" ${activeDays.includes(d) ? 'checked' : ''} onchange="this.parentElement.classList.toggle('active')">
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <button onclick="APP.actions.saveClassroom('${id || ''}')" class="w-full btn-brand py-4 uppercase mt-4 shadow-xl tracking-widest font-bold">Programı Hesapla & Kaydet</button>
+                        </div>
+                    `);
+                },
+
+                // (Keeping viewProfile and openClassManagement as is or updating if needed, but for now focusing on Logic)
+                // Re-inserting viewProfile and openClassManagement to ensure continuity
+                viewProfile: (id) => {
+                    // ... (Existing implementation)
+                    const s = APP.data.students.find(x => x.id === id);
+                    if (!s) return;
+                    APP.modals.open(`
+                        <div class="space-y-6 text-center">
+                            <h3 class="text-2xl font-bold text-white uppercase">${s.name}</h3>
+                            <p class="text-brand-400 font-bold uppercase text-[10px] tracking-widest">${s.level} | ${s.group}</p>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="glass-card p-4 rounded text-center"><p class="text-[8px] text-slate-500 uppercase mb-1">Biten Kur</p><p class="text-xl font-bold">${s.takenLevels}</p></div>
+                                <div class="glass-card p-4 rounded text-center"><p class="text-[8px] text-slate-500 uppercase mb-1">Kalan Hak</p><p class="text-xl font-bold text-accent-secondary">${s.remLevels}</p></div>
+                                <div class="glass-card p-4 rounded text-center"><p class="text-[8px] text-slate-500 uppercase mb-1">Tahsilat</p><p class="text-xs font-bold">₺${(s.paidAmount || 0).toLocaleString()}</p></div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="APP.actions.setFinalResult('${s.id}')" class="flex-1 bg-brand-600 py-3 rounded text-[10px] font-bold uppercase">Kur Onayla / Mezun Et</button>
+                                <button onclick="APP.actions.delete('students', '${s.id}')" class="bg-red-900/20 text-red-500 px-4 rounded border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `);
+                },
+
+                openClassManagement: (classroomName, timeSlot) => {
+                    // Using generalized lookup now since flexible time might not match exact slots
+                    // We match name and roughly the time or just Name for simpler UI in map
+                    // Updated to be more robust
+                    const classroom = APP.data.classrooms.find(c => c.name === classroomName && c.startTime === timeSlot);
+                    if (!classroom) return APP.modals.addClassroom(null, { room: classroomName, time: timeSlot });
+
+                    const teacher = APP.data.teachers.find(t => t.id === classroom?.teacherId);
+                    const students = APP.data.students.filter(s => s.group === classroomName);
+                    const product = APP.data.products.find(p => p.id === classroom?.productId);
+                    const sessionDates = APP.actions.calculateSessionDates(classroom.startDate, classroom.totalLessons, classroom.days || []);
+
+                    APP.modals.open(`
+                        <div class="space-y-6 custom-modal-scroll">
+                            <div class="flex justify-between items-start border-b border-slate-800 pb-4">
+                                <div><h3 class="text-2xl font-bold text-white uppercase tracking-tighter">${classroomName}</h3><p class="text-brand-400 font-bold text-[10px] uppercase">${product?.name || 'Paket Tanımsız'}</p></div>
+                                <div class="text-right flex flex-col items-end gap-2">
+                                    <p class="text-[9px] text-slate-500 uppercase font-bold">Sorumlu Eğitmen</p>
+                                    <p class="text-sm font-bold text-white uppercase">${teacher?.name || 'Atanmamış'}</p>
+                                    <button onclick="APP.modals.openDailyAttendance('${classroomName}')" class="bg-brand-600/20 border border-brand-500 text-brand-400 px-3 py-1 rounded text-[9px] font-bold uppercase hover:bg-brand-600 hover:text-white transition animate-pulse"><i class="fa-solid fa-clipboard-user"></i> Dersi Başlat / Yoklama</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="glass-card p-3 rounded-xl text-center border border-slate-700/50"><p class="text-[8px] text-slate-500 uppercase mb-1">Saat</p><p class="text-lg font-bold">${classroom.startTime}-${classroom.endTime}</p></div>
+                                <div class="glass-card p-3 rounded-xl text-center border border-slate-700/50"><p class="text-[8px] text-slate-500 uppercase mb-1">Mevcut</p><p class="text-lg font-bold">${students.length}/${classroom.capacity}</p></div>
+                                <div class="glass-card p-3 rounded-xl text-center border border-slate-700/50"><p class="text-[8px] text-slate-500 uppercase mb-1">Dersler</p><p class="text-lg font-bold text-accent-secondary">${classroom.totalLessons}</p></div>
+                                <div class="glass-card p-3 rounded-xl text-center border border-slate-700/50"><p class="text-[8px] text-slate-500 uppercase mb-1">Kur</p><p class="text-lg font-bold text-brand-400">${product?.level || '-'}</p></div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-widest px-2"><i class="fa-solid fa-list-check"></i> Haftalık Yoklama Kutucukları</h4>
+                                <div class="space-y-4">
+                                    ${students.map(s => `
+                                        <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3">
+                                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                                <span class="text-xs font-bold uppercase text-white">${s.name}</span>
+                                                <span class="text-[8px] text-slate-500 uppercase tracking-widest">Kalan: ${s.remLevels} Kur</span>
+                                            </div>
+                                            <div class="grid grid-cols-6 gap-1.5 overflow-x-auto pb-2">
+                                                ${sessionDates.map((date) => {
+                        const att = s.attendedLessons?.find(a => a.date === date);
+                        const state = att ? (att.status === 'Geldi' ? 'present' : 'absent') : 'pending';
+                        return `<div onclick="APP.actions.quickToggleAtt('${s.id}', '${date}', this)" class="att-date-box ${state}"><p class="text-[8px] font-bold">${date.split('.')[0]}.${date.split('.')[1]}</p><p class="text-[6px] uppercase font-black">Yok.</p></div>`;
+                    }).join('')}
+                                            </div>
+                                        </div>
+                                    `).join('') || '<p class="text-slate-600 text-xs italic p-8 text-center">Sınıfta henüz kayıtlı öğrenci yok.</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                },
+                openDailyAttendance: async (classroomName, date = new Date().toLocaleDateString('tr-TR')) => {
+                    const c = APP.data.classrooms.find(x => x.name === classroomName);
+                    if (!c) return;
+                    const students = APP.data.students.filter(s => s.group === classroomName);
+
+                    const result = await Swal.fire({
+                        title: 'Tarih Seçimi',
+                        input: 'text',
+                        inputValue: date,
+                        text: 'Hangi tarih için yoklama alınıyor? (GG.AA.YYYY)',
+                        showCancelButton: true,
+                        confirmButtonText: 'Devam Et',
+                        cancelButtonText: 'İptal',
+                        background: '#1e293b',
+                        color: '#fff'
+                    });
+
+                    if (!result.isConfirmed) return;
+                    const selectedDate = result.value;
+
+                    APP.modals.open(`
+                        <div class="space-y-6 custom-modal-scroll">
+                            <h3 class="text-xl font-bold text-white uppercase border-b border-slate-800 pb-2 flex justify-between">
+                                <span>Yoklama: ${selectedDate}</span>
+                                <span class="text-xs text-slate-500">${classroomName}</span>
+                            </h3>
+                            <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                                ${students.length > 0 ? students.map(s => {
+                        const att = s.attendedLessons?.find(a => a.date === selectedDate);
+                        const stat = att ? att.status : 'Geldi'; // Default Present
+                        return `
+                                    <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded border border-slate-800">
+                                        <div class="text-xs font-bold text-slate-300 uppercase w-1/3">${s.name}</div>
+                                        <div class="flex gap-1 flex-1 justify-end button-group-att" id="grp-${s.id}">
+                                            <button onclick="APP.actions.setAttTemp('${s.id}', 'Geldi')" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition ${stat === 'Geldi' ? 'bg-accent-success text-white' : 'bg-slate-800 text-slate-500'}">Geldi</button>
+                                            <button onclick="APP.actions.setAttTemp('${s.id}', 'Gelmedi')" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition ${stat === 'Gelmedi' ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-500'}">Gelmedi</button>
+                                            <button onclick="APP.actions.setAttTemp('${s.id}', 'Geç')" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition ${stat === 'Geç' ? 'bg-yellow-500 text-white' : 'bg-slate-800 text-slate-500'}">Geç</button>
+                                            <button onclick="APP.actions.setAttTemp('${s.id}', 'İzinli')" class="px-2 py-1 rounded text-[9px] font-bold uppercase transition ${stat === 'İzinli' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'}">İzinli</button>
+                                        </div>
+                                        <input type="hidden" id="att-val-${s.id}" value="${stat}" class="att-submission">
+                                    </div>`;
+                    }).join('') : '<p class="text-center text-slate-500 text-xs text-brand-400">Bu sınıfa kayıtlı öğrenci yok.</p>'}
+                            </div>
+                            <button onclick="APP.actions.saveDailyAttendance('${classroomName}', '${selectedDate}')" class="btn-brand w-full py-3 uppercase font-bold text-sm tracking-widest shadow-lg shadow-brand-900/50">YOKLAMAYI KAYDET & ANALİZ ET</button>
+                        </div>
+                    `);
+                },
+                openAttendanceResult: (absents) => {
+                    APP.modals.open(`
+                        <div class="space-y-6 text-center">
+                            <div class="mx-auto w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 animate-bounce">
+                                <i class="fa-solid fa-check text-2xl text-accent-success"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white uppercase tracking-tighter">Yoklama Kaydedildi</h3>
+                            
+                            ${absents.length > 0 ? `
+                                <div class="bg-red-900/10 border border-red-500/30 p-5 rounded-xl text-left">
+                                    <h4 class="text-xs font-bold text-red-400 uppercase mb-4 flex items-center gap-2"><i class="fa-solid fa-bell"></i> Devamsızlık Bildirim Önerileri</h4>
+                                    <div class="space-y-3">
+                                        ${absents.map(s => `
+                                            <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs font-bold text-white uppercase">${s.name}</span>
+                                                    <span class="text-[9px] text-slate-500">Bugün derse gelmedi.</span>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <a href="tel:${s.phone || ''}" class="bg-slate-800 hover:bg-white hover:text-black text-white px-3 py-2 rounded text-[9px] uppercase font-bold transition flex items-center gap-2"><i class="fa-solid fa-phone"></i> Ara</a>
+                                                    <button onclick="APP.actions.addStudentNotePrompt('${s.id}')" class="bg-slate-800 hover:bg-white hover:text-black text-white px-3 py-2 rounded text-[9px] uppercase font-bold transition flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Not Ekle</button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : `<div class="p-6 bg-accent-success/10 border border-accent-success/20 rounded-xl"><p class="text-accent-success text-sm font-bold uppercase">Süper! Bugün devamsızlık yapan öğrenci yok.</p></div>`}
+                            
+                            <button onclick="APP.modals.close()" class="w-full bg-slate-800 py-4 rounded-xl text-slate-400 hover:text-white font-bold uppercase text-xs mt-4 tracking-widest transition">Pencereyi Kapat</button>
+                        </div>
+                    `);
+                }
+            },
+
+            actions: {
+                setAttTemp: (id, status) => {
+                    const el = document.getElementById('att-val-' + id);
+                    if (el) el.value = status;
+                    const grp = document.getElementById('grp-' + id);
+                    if (!grp) return;
+                    const btns = grp.querySelectorAll('button');
+                    if (btns.length >= 4) {
+                        btns[0].className = `px-2 py-1 rounded text-[9px] font-bold uppercase transition ${status === 'Geldi' ? 'bg-accent-success text-white' : 'bg-slate-800 text-slate-500'}`;
+                        btns[1].className = `px-2 py-1 rounded text-[9px] font-bold uppercase transition ${status === 'Gelmedi' ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-500'}`;
+                        btns[2].className = `px-2 py-1 rounded text-[9px] font-bold uppercase transition ${status === 'Geç' ? 'bg-yellow-500 text-white' : 'bg-slate-800 text-slate-500'}`;
+                        btns[3].className = `px-2 py-1 rounded text-[9px] font-bold uppercase transition ${status === 'İzinli' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-500'}`;
+                    }
+                },
+                saveDailyAttendance: async (className, date) => {
+                    const students = APP.data.students.filter(s => s.group === className);
+                    const absents = [];
+                    for (const s of students) {
+                        const valEl = document.getElementById('att-val-' + s.id);
+                        if (!valEl) continue;
+                        const val = valEl.value;
+                        let att = s.attendedLessons || [];
+                        const existIdx = att.findIndex(a => a.date === date);
+                        if (existIdx !== -1) att[existIdx].status = val;
+                        else att.push({ date: date, status: val });
+                        s.attendedLessons = att;
+                        await APP.db.save('students', s.id, s);
+                        if (val === 'Gelmedi') absents.push(s);
+                    }
+                    APP.modals.openAttendanceResult(absents);
+                },
+                addStudentNotePrompt: async (id) => {
+                    const { value: note } = await Swal.fire({
+                        title: 'Not Ekle',
+                        input: 'textarea',
+                        inputLabel: 'Öğrenci Hakkında Not',
+                        inputPlaceholder: 'Notunuzu buraya yazın...',
+                        showCancelButton: true,
+                        background: '#1e293b',
+                        color: '#fff'
+                    });
+                    if (note) {
+                        const s = APP.data.students.find(x => x.id === id);
+                        if (s) {
+                            if (!s.notes) s.notes = [];
+                            s.notes.push({ date: new Date().toLocaleDateString('tr-TR'), text: note });
+                            await APP.db.save('students', id, s);
+                            Swal.fire({ title: 'Başarılı', text: 'Not kaydedildi.', icon: 'success', timer: 1500, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+                        }
+                    }
+                },
+                calculateSessionDates: (startDateStr, totalLessons, activeDays) => {
+                    if (!startDateStr || !activeDays || activeDays.length === 0) return [];
+                    const dates = []; let current = new Date(startDateStr);
+                    const dayMap = { "Pazartesi": 1, "Salı": 2, "Çarşamba": 3, "Perşembe": 4, "Cuma": 5, "Cumartesi": 6, "Pazar": 0 };
+                    const targetDays = activeDays.map(d => dayMap[d]);
+                    let safety = 0;
+                    while (dates.length < totalLessons && safety < 1000) {
+                        if (targetDays.includes(current.getDay())) dates.push(current.toLocaleDateString('tr-TR'));
+                        current.setDate(current.getDate() + 1);
+                        safety++;
+                    }
+                    return dates;
+                },
+                calculateAttendance: (s) => {
+                    if (!s || !s.attendedLessons) return { status: 'good', count: 0, limit: 10 };
+
+                    const limit = parseInt(APP.data.settings.attLimit) || 10;
+                    const action = APP.data.settings.attAction || 'warning';
+
+                    const absentCount = s.attendedLessons.filter(x => x.status === 'Gelmedi').length;
+
+                    let status = 'good';
+                    if (absentCount >= limit) status = 'danger';
+                    else if (absentCount >= limit * 0.7) status = 'warning';
+
+                    return { status, count: absentCount, limit, action };
+                },
+                quickToggleAtt: async (stdId, date, el) => {
+                    // ... same as before
+                    const s = APP.data.students.find(x => x.id === stdId);
+                    if (!s) return;
+                    if (!s.attendedLessons) s.attendedLessons = [];
+                    const idx = s.attendedLessons.findIndex(a => a.date === date);
+                    if (idx > -1) {
+                        if (s.attendedLessons[idx].status === 'Geldi') s.attendedLessons[idx].status = 'Gelmedi';
+                        else s.attendedLessons.splice(idx, 1);
+                    } else { s.attendedLessons.push({ date, status: 'Geldi' }); }
+                    await APP.db.save('students', stdId, s);
+                },
+
+                // SAVES (Updated saveClassroom for Flexible Logic)
+                saveClassroom: async (id) => {
+                    const days = Array.from(document.querySelectorAll('input[name="lesson_days"]:checked')).map(cb => cb.value);
+
+                    // NEW INPUTS
+                    const lessonDur = parseInt(document.getElementById('mc-dur-lesson').value) || 40;
+                    const breakDur = parseInt(document.getElementById('mc-dur-break').value) || 10;
+                    const lessonsPerDay = parseInt(document.getElementById('mc-lesson-count').value) || 3;
+                    const startTime = document.getElementById('mc-time').value;
+
+                    const data = {
+                        name: document.getElementById('mc-name').value,
+                        productId: document.getElementById('mc-prd').value,
+                        teacherId: document.getElementById('mc-tea').value,
+                        startTime,
+                        startDate: document.getElementById('mc-start-date').value,
+                        totalLessons: parseInt(document.getElementById('mc-total-lessons').value),
+                        capacity: parseInt(document.getElementById('mc-cap').value),
+                        days,
+                        // Saving Flexible Params
+                        lessonDur, breakDur, lessonsPerDay
+                    };
+
+                    // FLEXIBLE CALCULATION
+                    const totalMinutes = (lessonDur * lessonsPerDay) + (breakDur * (lessonsPerDay - 1));
+                    const [h, m] = startTime.split(':').map(Number);
+                    const end = new Date(0, 0, 0, h, m + totalMinutes);
+                    const endStr = end.toTimeString().substring(0, 5);
+                    data.endTime = endStr;
+
+                    if (days.length === 0) return Swal.fire('Hata', 'Ders günü seçilmelidir!', 'error');
+
+                    await APP.db.save('classrooms', id || 'CLS-' + Date.now(), data);
+                    APP.modals.close();
+                },
+
+                // ... (Other save functions unchanged)
+                saveProduct: async (id) => { /*...*/ const fields = ['mp-name', 'mp-days', 'mp-lessons', 'mp-hours', 'mp-t-req', 'mp-level', 'mp-age', 'mp-next']; const data = {}; for (const f of fields) { const el = document.getElementById(f); if (!el || (el.tagName === 'INPUT' && !el.value)) { Swal.fire('Eksik Veri', 'Lütfen tüm paket bilgilerini doldurun.', 'warning'); return; } data[f.replace('mp-', '')] = el.value; } await APP.db.save('products', id || 'PRD-' + Date.now(), data); APP.modals.close(); },
+                saveStudent: async (id) => { /*...*/ const data = { name: document.getElementById('ms-name').value, age: parseInt(document.getElementById('ms-age').value), level: document.getElementById('ms-level').value, takenLevels: parseInt(document.getElementById('ms-taken').value), remLevels: parseInt(document.getElementById('ms-rem').value), group: document.getElementById('ms-class').value, paidAmount: parseFloat(document.getElementById('ms-paid').value), phone: document.getElementById('ms-phone').value, attendedLessons: APP.data.students.find(x => x.id === id)?.attendedLessons || [] }; await APP.db.save('students', id || 'STD-' + Date.now(), data); APP.modals.close(); },
+                saveTeacher: async (id) => { /*...*/ const name = document.getElementById('mt-name').value; const data = { name, salaryType: document.getElementById('mt-type').value, salaryAmount: parseFloat(document.getElementById('mt-amount').value), branch: document.getElementById('mt-branch').value }; await APP.db.save('teachers', id || 'TEA-' + Date.now(), data); APP.modals.close(); },
+                addBuildingRoom: async () => { /*...*/ const name = document.getElementById('set-room-name').value; const floor = parseInt(document.getElementById('set-room-floor').value); if (!name) return; const rooms = [...(APP.data.settings.rooms || []), { name, floor }]; await APP.db.save('settings', 'global', { ...APP.data.settings, rooms }); document.getElementById('set-room-name').value = ''; },
+                addSession: async () => { /*...*/ const checks = document.querySelectorAll('.session-days-check:checked'); const days = Array.from(checks).map(c => c.value); const name = document.getElementById('set-session-name').value; const start = document.getElementById('set-session-start').value; if (!name || !start || days.length === 0) return Swal.fire('Hata', 'İsim, Saat ve Gün seçimi zorunludur.', 'error'); const sess = { id: 'SESS-' + Date.now(), name, startTime: start, lessonCount: parseInt(document.getElementById('set-session-lessons').value), lessonDur: parseInt(document.getElementById('set-session-lesson-dur').value), breakDur: parseInt(document.getElementById('set-session-break-dur').value), days }; const sessions = [...(APP.data.settings.sessions || []), sess]; await APP.db.save('settings', 'global', { ...APP.data.settings, sessions }); },
+
+                saveSettings: async () => {
+                    const s = { ...APP.data.settings };
+                    if (document.getElementById('st-name')) s.name = document.getElementById('st-name').value;
+                    if (document.getElementById('st-type')) s.type = document.getElementById('st-type').value;
+                    if (document.getElementById('st-ldur')) s.lessonDur = parseInt(document.getElementById('st-ldur').value);
+                    if (document.getElementById('st-bdur')) s.breakDur = parseInt(document.getElementById('st-bdur').value);
+                    if (document.getElementById('st-start')) s.workStart = document.getElementById('st-start').value;
+                    if (document.getElementById('st-end')) s.workEnd = document.getElementById('st-end').value;
+                    if (document.getElementById('st-levels')) s.levels = document.getElementById('st-levels').value.split(',').map(x => x.trim()).filter(x => x);
+                    if (document.getElementById('st-alimit')) s.attLimit = parseInt(document.getElementById('st-alimit').value);
+                    if (document.getElementById('st-action')) s.attAction = document.getElementById('st-action').value;
+
+                    await APP.db.save('settings', 'global', s);
+                },
+
+                removeBuildingRoom: async (name) => { /*...*/ const rooms = APP.data.settings.rooms.filter(r => r.name !== name); await APP.db.save('settings', 'global', { ...APP.data.settings, rooms }); },
+                removeSession: async (id) => { /*...*/ const sessions = APP.data.settings.sessions.filter(s => s.id !== id); await APP.db.save('settings', 'global', { ...APP.data.settings, sessions }); },
+                autoAssign: async () => { /*...*/ let count = 0; for (const s of APP.data.students) { if (s.group === 'Yerleştirilmedi' && s.remLevels > 0) { const match = APP.data.classrooms.find(c => { const prd = APP.data.products.find(p => p.id === c.productId); const current = APP.data.students.filter(std => std.group === c.name).length; return prd?.level === s.level && current < c.capacity; }); if (match) { s.group = match.name; await APP.db.save('students', s.id, s); count++; } } } Swal.fire('Atama Tamamlandı', `${count} öğrenci yerleştirildi.`, 'success'); },
+                generateDemoData: async () => {
+                    if (!confirm("Mevcut veriler üzerine 100 öğrenci ve örnek sınıflar eklenecek. Onaylıyor musunuz?")) return;
+                    const firstNames = ["Ahmet", "Mehmet", "Ayşe", "Fatma", "Can", "Cem", "Deniz", "Ece", "Elif", "Emre", "Kaan", "Lale", "Mustafa", "Zeynep"];
+                    const lastNames = ["Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Öztürk", "Arslan", "Doğan", "Kılıç"];
+                    const levels = ["A1", "A2", "B1", "B2", "C1"];
+
+                    // 1. Rooms
+                    const rooms = [];
+                    for (let f = 1; f <= 3; f++) for (let r = 1; r <= 4; r++) rooms.push({ name: `${f}0${r}`, floor: f });
+                    await APP.db.save('settings', 'global', { ...APP.data.settings, rooms });
+
+                    // 2. Teachers & Products
+                    const teachers = [{ id: 'TEA-1', name: 'John Doe', branch: 'Native', salaryType: 'Aylık', salaryAmount: 45000 }, { id: 'TEA-2', name: 'Ayşe Yılmaz', branch: 'Grammar', salaryType: 'Aylık', salaryAmount: 35000 }];
+                    for (const t of teachers) await APP.db.save('teachers', t.id, t);
+                    const products = levels.map((l, i) => ({ id: `PRD-${l}`, name: `Genel İngilizce ${l}`, level: l, totalHours: 72, price: 15000 + (i * 2000) }));
+                    for (const p of products) await APP.db.save('products', p.id, p);
+
+                    // 3. Students
+                    const students = [];
+                    for (let i = 0; i < 100; i++) {
+                        const l = levels[Math.floor(Math.random() * levels.length)];
+                        students.push({ id: `STD-${Date.now()}-${i}`, name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`, age: 18 + Math.floor(Math.random() * 30), level: l, takenLevels: Math.floor(Math.random() * 3), remLevels: 1, group: 'Yerleştirilmedi', paidAmount: Math.random() > 0.3 ? 15000 : 0, phone: '5550000000', attendedLessons: [] });
+                    }
+                    for (const s of students) await APP.db.save('students', s.id, s);
+
+                    // 4. Classes
+                    const timeSlots = ["09:00", "14:00", "18:00"];
+                    rooms.forEach((r, idx) => {
+                        if (idx > 5) return;
+                        const tSlot = timeSlots[idx % timeSlots.length];
+                        const cls = { id: `CLS-${r.name}-${tSlot}`, name: r.name, productId: products[idx % products.length].id, teacherId: teachers[idx % teachers.length].id, startTime: tSlot, endTime: "", startDate: new Date().toISOString().split('T')[0], totalLessons: 24, capacity: 12, days: ["Pazartesi", "Çarşamba", "Cuma"], lessonDur: 40, breakDur: 10, lessonsPerDay: 2 };
+                        const [h, m] = tSlot.split(':').map(Number);
+                        const end = new Date(0, 0, 0, h, m + 90);
+                        cls.endTime = end.toTimeString().substring(0, 5);
+                        APP.db.save('classrooms', cls.id, cls);
+                    });
+
+                    Swal.fire('Demo Yüklendi', 'Sayfa yenileniyor...', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                },
+                seedInitialData: async () => {
+                    // Silent Auto-Seed (No Confirm)
+                    const firstNames = ["Ahmet", "Mehmet", "Ayşe", "Fatma", "Can", "Cem", "Deniz", "Ece", "Elif", "Emre", "Kaan", "Lale", "Mustafa", "Zeynep"];
+                    const lastNames = ["Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Öztürk", "Arslan", "Doğan", "Kılıç"];
+                    const levels = ["A1", "A2", "B1", "B2", "C1"];
+
+                    // 1. Rooms
+                    const rooms = [];
+                    for (let f = 1; f <= 3; f++) for (let r = 1; r <= 4; r++) rooms.push({ name: `${f}0${r}`, floor: f });
+                    await APP.db.save('settings', 'global', { ...APP.data.settings, rooms });
+
+                    // 2. Teachers & Products
+                    const teachers = [{ id: 'TEA-1', name: 'John Doe', branch: 'Native', salaryType: 'Aylık', salaryAmount: 45000 }, { id: 'TEA-2', name: 'Ayşe Yılmaz', branch: 'Grammar', salaryType: 'Aylık', salaryAmount: 35000 }];
+                    for (const t of teachers) await APP.db.save('teachers', t.id, t);
+                    const products = levels.map((l, i) => ({ id: `PRD-${l}`, name: `Genel İngilizce ${l}`, level: l, totalHours: 72, price: 15000 + (i * 2000) }));
+                    for (const p of products) await APP.db.save('products', p.id, p);
+
+                    // 3. Students (20 for Auto-Seed)
+                    const students = [];
+                    for (let i = 0; i < 20; i++) {
+                        const l = levels[Math.floor(Math.random() * levels.length)];
+                        students.push({ id: `STD-${Date.now()}-${i}`, name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`, age: 18 + Math.floor(Math.random() * 30), level: l, takenLevels: Math.floor(Math.random() * 3), remLevels: 1, group: 'Yerleştirilmedi', paidAmount: Math.random() > 0.3 ? 15000 : 0, phone: '5550000000', attendedLessons: [] });
+                    }
+                    for (const s of students) await APP.db.save('students', s.id, s);
+
+                    // 4. Classes
+                    const timeSlots = ["09:00", "14:00", "18:00"];
+                    rooms.forEach((r, idx) => {
+                        if (idx > 5) return;
+                        const tSlot = timeSlots[idx % timeSlots.length];
+                        const cls = { id: `CLS-${r.name}-${tSlot}`, name: r.name, productId: products[idx % products.length].id, teacherId: teachers[idx % teachers.length].id, startTime: tSlot, endTime: "", startDate: new Date().toISOString().split('T')[0], totalLessons: 24, capacity: 12, days: ["Pazartesi", "Çarşamba", "Cuma"], lessonDur: 40, breakDur: 10, lessonsPerDay: 2 };
+                        const [h, m] = tSlot.split(':').map(Number);
+                        const end = new Date(0, 0, 0, h, m + 90);
+                        cls.endTime = end.toTimeString().substring(0, 5);
+                        APP.db.save('classrooms', cls.id, cls);
+                    });
+
+                    // Silent Reload
+                    location.reload();
+                },
+                delete: async (col, id) => { /*...*/ const res = await Swal.fire({ title: 'Emin misiniz?', icon: 'warning', showCancelButton: true }); if (res.isConfirmed) { const docRef = doc(db, 'artifacts', appId, 'public', 'data', col, id); await deleteDoc(docRef); APP.render.all(); } }
+            },
+
+
+            db: {
+                save: async (col, docId, data) => {
+                    // Hybrid Save: Local + Online
+                    if (window.pywebview) {
+                        // Local
+                        if (col === 'settings') await localDB.setDoc(col, docId, data);
+                        else {
+                            // Check if exists for update vs add logic in localDB helper
+                            // My localDB.setDoc handles both for settings, but for others:
+                            // addDoc creates ID, setDoc updates ID.
+                            // Here we have docId. 
+                            // If it exists in localDB.inMemory[col], update. Else add.
+                            const list = localDB.inMemory[col] || [];
+                            const exists = list.find(x => x.id === docId);
+                            if (exists) await localDB.updateDoc(col, docId, data);
+                            else {
+                                // Manual push since we define ID
+                                list.push({ id: docId, ...data });
+                                await localDB._set(col, list);
+                            }
+                        }
+                    }
+
+                    // Online (If User Exists)
+                    if (user) {
+                        try {
+                            const docRef = col === 'settings' ? doc(db, 'artifacts', appId, 'public', 'data', 'settings', docId) : doc(db, 'artifacts', appId, 'public', 'data', col, docId);
+                            await setDoc(docRef, data);
+                        } catch (e) { console.warn("Online save ignored", e); }
+                    }
+                }
+            },
+
+            render: {
+                all: () => {
+                    APP.render.stats();
+                    APP.render.dashboardBirdseye();
+                    APP.render.products();
+                    APP.render.students();
+                    APP.render.teachers();
+                    APP.render.classrooms();
+                    APP.render.settingsRooms();
+                    APP.render.settingsSessions();
+                    APP.render.spacePlan();
+                    if (APP.renderSettingsUI) APP.renderSettingsUI();
+                },
+                stats: () => {
+                    const updateUI = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+                    updateUI('stat-total-students', APP.data.students.length);
+                    updateUI('stat-total-paid', '₺' + APP.data.students.reduce((a, b) => a + (b.paidAmount || 0), 0).toLocaleString());
+                    updateUI('stat-completed-levels', APP.data.students.reduce((a, b) => a + (b.takenLevels || 0), 0));
+                    updateUI('stat-active-classes', APP.data.classrooms.length);
+                    const inc = APP.data.students.reduce((a, b) => a + (b.paidAmount || 0), 0);
+                    const cost = APP.data.teachers.reduce((a, b) => a + (b.salaryAmount || 0), 0);
+                    updateUI('profit-kpi', '₺' + (inc - cost).toLocaleString());
+                    updateUI('stat-avail-rooms', Math.max(0, APP.data.settings.rooms.length - APP.data.classrooms.length));
+
+                    // AZI AI SUGGESTIONS ENGINE
+                    const suggestionsDiv = document.getElementById('dashboard-ai-suggestions');
+                    if (suggestionsDiv) {
+                        const suggestions = [];
+
+                        // 1. RISK ANALIZI
+                        const dangerStudents = APP.data.students.filter(s => {
+                            const att = APP.actions.calculateAttendance(s);
+                            return att.status === 'danger' || att.action === 'fail';
+                        });
+                        if (dangerStudents.length > 0) {
+                            APP.data.tempDanger = dangerStudents;
+                            suggestions.push({
+                                type: 'danger',
+                                icon: 'fa-triangle-exclamation',
+                                title: `${dangerStudents.length} TEHLİKELİ DEVAMSIZLIK`,
+                                msg: 'Bazı öğrenciler devamsızlık sınırını aştı! Sistem otomatik olarak veli araması planladı.',
+                                btn: 'RİSK LİSTESİNİ GÖR',
+                                click: 'APP.modals.openAttendanceResult(APP.data.tempDanger)'
+                            });
+                        }
+
+                        // 2. YENİ KAYIT ANALİZİ
+                        const unassigned = APP.data.students.filter(s => s.group === 'Yerleştirilmedi' || !s.group);
+                        if (unassigned.length > 0) {
+                            suggestions.push({
+                                type: 'info',
+                                icon: 'fa-user-plus',
+                                title: `${unassigned.length} YENİ ÖĞRENCİ`,
+                                msg: 'Henüz sınıf ataması yapılmamış kayıtlar bekliyor. Seviye tespit sınavı sonrası atama yapınız.',
+                                btn: 'ÖĞRENCİLERİ YÖNET',
+                                click: "document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); if(document.getElementById('btn-students')) document.getElementById('btn-students').click(); APP.render.students();"
+                            });
+                        }
+
+                        // 3. SINIF VERİMLİLİK
+                        const emptyClasses = APP.data.classrooms.filter(c => {
+                            const cnt = APP.data.students.filter(s => s.group === c.name).length;
+                            return cnt === 0;
+                        });
+                        if (emptyClasses.length > 0) {
+                            suggestions.push({
+                                type: 'warning',
+                                icon: 'fa-chalkboard-user',
+                                title: `${emptyClasses.length} PASİF SINIF`,
+                                msg: 'Tanımlı ancak öğrencisi olmayan sınıflarınız var. Birleştirme önerilir.',
+                                btn: 'SINIFLARI KONTROL ET',
+                                click: "document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); if(document.getElementById('btn-classrooms')) document.getElementById('btn-classrooms').click(); APP.render.classrooms();"
+                            });
+                        }
+
+                        suggestionsDiv.innerHTML = suggestions.length > 0 ? `
+                            <div class="glass p-5 rounded-xl border border-brand-500/30 relative overflow-hidden group">
+                                <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition duration-1000"></div>
+                                <h3 class="text-xs font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-brand-400"></i> AZI AI İş Zekası & Öneriler</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    ${suggestions.map(s => `
+                                        <div class="bg-slate-900/60 p-4 rounded-lg border ${s.type === 'danger' ? 'border-red-500/40 text-red-500' : (s.type === 'warning' ? 'border-yellow-500/40 text-yellow-500' : 'border-brand-500/40 text-brand-400')} hover:brightness-110 transition cursor-default">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <i class="fa-solid ${s.icon} text-lg mb-2 opacity-80"></i>
+                                                ${s.type === 'danger' ? '<span class="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>' : ''}
+                                            </div>
+                                            <h4 class="text-[10px] font-bold text-white uppercase mb-1">${s.title}</h4>
+                                            <p class="text-[9px] text-slate-400 mb-3 leading-relaxed font-medium">${s.msg}</p>
+                                            ${s.btn ? `<button onclick="${s.click}" class="bg-slate-800 hover:bg-white hover:text-black text-white px-3 py-2 rounded text-[8px] font-bold uppercase w-full transition tracking-widest">${s.btn}</button>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="glass p-5 rounded-xl border border-brand-500/20 relative overflow-hidden">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-brand-900"></i> AZI AI İş Zekası</h3>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-accent-success/20 flex items-center justify-center"><i class="fa-solid fa-check text-accent-success"></i></div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white">Sistem Stabil</h4>
+                                        <p class="text-[10px] text-slate-500">Şu an için acil eylem gerektiren bir durum tespit edilmedi.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                },
+                dashboardBirdseye: () => {
+                    const matrix = document.getElementById('dash-matrix-table');
+                    if (!matrix) return;
+                    const rooms = APP.data.settings.rooms || [];
+                    const sessions = APP.data.settings.sessions || [];
+                    const activeDay = document.getElementById('matrix-day-filter').value === 'Bugün' ? new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(new Date()) : document.getElementById('matrix-day-filter').value;
+
+                    let h = '<thead><tr><th class="p-2 text-[8px] text-slate-500 border-b border-slate-800 uppercase">Seanslar</th>';
+                    rooms.forEach(r => h += `<th class="p-2 text-[9px] text-brand-400 border-l border-slate-800 border-b border-slate-800 uppercase font-black">${r.name}</th>`);
+                    h += '</tr></thead><tbody>';
+
+                    sessions.forEach(sess => {
+                        if (sess.days?.includes(activeDay)) {
+                            h += `<tr><td class="p-2 text-[9px] font-mono text-slate-700 border-b border-slate-800/20"><b>${sess.name}</b><br>${sess.startTime}</td>`;
+                            rooms.forEach(r => {
+                                const c = APP.data.classrooms.find(x => x.name === r.name && x.startTime === sess.startTime && x.days?.includes(activeDay));
+                                let cls = 'empty'; let content = '';
+                                if (c) {
+                                    const stds = APP.data.students.filter(s => s.group === c.name);
+                                    const prd = APP.data.products.find(p => p.id === c.productId);
+                                    cls = stds.length >= c.capacity ? 'bg-red-900/30 text-red-400 border-red-500/40 border-2' : 'bg-brand-900/30 text-brand-400 border-brand-500/40 border-2';
+                                    content = `<span class="font-black text-[10px] leading-tight">${prd?.level || '...'}</span><span class="text-[10px] font-black text-white">${stds.length}/${c.capacity}</span>`;
+                                }
+                                h += `<td class="p-0 border-l border-slate-800/20 border-b border-slate-800/10"><div class="matrix-square ${cls}" onclick="APP.modals.openClassManagement('${r.name}', '${sess.startTime}')">${content || '+'}</div></td>`;
+                            });
+                            h += '</tr>';
+                        }
+                    });
+                    matrix.innerHTML = h + '</tbody>';
+                },
+                spacePlan: () => {
+                    const cont = document.getElementById('dashboard-floor-plan');
+                    if (!cont) return;
+
+                    const rooms = APP.data.settings.rooms || [];
+                    const floors = [...new Set(rooms.map(r => r.floor))].sort((a, b) => a - b);
+                    const now = new Date();
+                    const currentDay = new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(now);
+                    const currentTime = now.toTimeString().substring(0, 5);
+
+                    let html = `
+                        <div class="flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                             <div><h3 class="text-white font-bold uppercase tracking-widest"><i class="fa-solid fa-building-user text-brand-400 mr-2"></i> Canlı Bina Durumu (Kroki)</h3><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Şu an: <span class="text-white">${currentDay}, ${currentTime}</span></p></div>
+                             <button onclick="APP.render.spacePlan()" class="text-xs bg-slate-800 text-white px-3 py-1 rounded hover:bg-slate-700 transition"><i class="fa-solid fa-rotate"></i> Yenile</button>
+                        </div>
+                    `;
+
+                    floors.forEach(f => {
+                        const floorRooms = rooms.filter(r => r.floor === f);
+                        html += `<div class="relative"><div class="absolute -left-3 top-[-10px] bg-slate-800 text-brand-400 text-[9px] font-bold px-2 py-1 rounded border border-slate-700 uppercase tracking-widest z-10">KAT ${f}</div><div class="glass p-6 rounded-xl border border-dashed border-slate-700 grid grid-cols-4 gap-4 pt-8">`;
+                        floorRooms.forEach(r => {
+                            const activeClass = APP.data.classrooms.find(c => {
+                                if (c.name !== r.name) return false;
+                                if (!c.days?.includes(currentDay)) return false;
+                                return c.startTime <= currentTime && c.endTime > currentTime;
+                            });
+                            const statusColor = activeClass ? 'bg-brand-900/40 border-brand-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-slate-900/40 border-slate-700/50 text-slate-500 opacity-60';
+                            const icon = activeClass ? 'fa-solid fa-chalkboard-user animate-pulse text-brand-400' : 'fa-solid fa-door-open';
+                            html += `<div class="p-4 rounded-xl border ${statusColor} relative transition-all hover:scale-105 select-none cursor-pointer" onclick="if('${activeClass ? activeClass.name : ''}') APP.modals.openClassManagement('${r.name}', '${activeClass ? activeClass.startTime : ''}')"><div class="flex justify-between items-start mb-2"><span class="text-xs font-bold uppercase tracking-tighter">${r.name}</span><i class="${icon}"></i></div><div class="h-10 flex items-center justify-center">${activeClass ? `<div class="text-center"><div class="text-[10px] font-bold text-white leading-tight uppercase">${activeClass.startTime} - ${activeClass.endTime}</div><div class="text-[8px] text-brand-400 font-black uppercase tracking-widest mt-0.5">DERS İŞLENİYOR</div></div>` : '<span class="text-[9px] font-bold uppercase tracking-widest">BOŞ</span>'}</div></div>`;
+                        });
+                        html += `</div></div>`;
+                    });
+
+                    if (rooms.length === 0) html += '<div class="p-10 text-center text-slate-600 italic">Henüz bina odası tanımlanmamış. Ayarlar sekmesinden oda ekleyin.</div>';
+                    cont.innerHTML = html;
+                },
+                students: () => {
+                    const q = document.getElementById('student-search').value.toLowerCase();
+                    document.getElementById('student-tbody').innerHTML = APP.data.students.filter(s => s.name.toLowerCase().includes(q)).map(s => {
+                        const att = APP.actions.calculateAttendance(s);
+                        let badgeClass = 'bg-accent-success/20 text-accent-success border border-accent-success/20';
+                        if (att.status === 'warning') badgeClass = 'bg-brand-900/40 text-brand-400 border border-brand-500/40';
+                        if (att.status === 'danger') badgeClass = 'bg-accent-danger/20 text-accent-danger border border-accent-danger/20 animate-pulse';
+
+                        return `<tr class="border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer transition" onclick="APP.modals.viewProfile('${s.id}')">
+                            <td class="p-4 font-bold text-white uppercase tracking-tighter text-sm">${s.name}</td>
+                            <td class="p-4 text-xs font-bold text-slate-300 uppercase">${s.group}</td>
+                            <td class="p-4"><span class="${badgeClass} px-2 py-1 rounded text-[9px] font-bold uppercase tracking-widest">${att.count}/${att.limit} ${att.status === 'danger' ? '⚠️' : ''}</span></td>
+                            <td class="p-4"><span class="bg-brand-900 text-brand-400 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase">LVL ${s.takenLevels}</span></td>
+                            <td class="p-4 text-right"><button onclick="APP.modals.addStudent('${s.id}')" class="text-slate-400 hover:text-white transition px-2"><i class="fa-solid fa-pen"></i></button></td>
+                        </tr>`;
+                    }).join('');
+                },
+                teachers: () => {
+                    document.getElementById('teacher-grid').innerHTML = APP.data.teachers.map(t => `<div class="glass-card p-5 rounded-xl border border-slate-800 group relative transition-all hover:translate-y-[-2px] shadow-xl"><h4 class="font-bold text-white uppercase tracking-tighter text-lg">${t.name}</h4><p class="text-xs text-brand-400 font-bold mb-4 tracking-widest uppercase">${t.branch}</p><div class="flex justify-between items-end border-t border-slate-800 pt-3 text-[9px]"><div><p class="text-slate-500 uppercase font-bold tracking-widest">${t.salaryType}</p><p class="font-bold text-white text-sm">₺${(t.salaryAmount || 0).toLocaleString()}</p></div><div class="flex gap-2"><button onclick="APP.modals.addTeacher('${t.id}')" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-pen"></i></button><button onclick="APP.actions.delete('teachers', '${t.id}')" class="text-red-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join('');
+                },
+                products: () => {
+                    document.getElementById('products-grid').innerHTML = APP.data.products.map(p => `<div class="glass-card p-5 rounded-xl border border-slate-800 group relative transition-all hover:translate-y-[-2px] shadow-xl"><h4 class="font-bold text-white uppercase tracking-tight text-lg">${p.name}</h4><p class="text-[9px] text-brand-400 font-bold uppercase mb-4 tracking-widest">${p.level} Seviye</p><div class="text-[10px] space-y-1 text-slate-500 font-bold uppercase">Süre: ${p.totalHours} Saat</div><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition"><button onclick="APP.modals.addProduct('${p.id}')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i></button><button onclick="APP.actions.delete('products', '${p.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
+                },
+                classrooms: () => {
+                    document.getElementById('classroom-grid').innerHTML = APP.data.classrooms.map(c => `<div class="glass-card p-5 rounded-xl border-b-2 border-brand-500 transition-all hover:translate-y-[-2px] shadow-xl"><h4 class="font-bold text-white uppercase tracking-tighter text-lg">${c.name}</h4><p class="text-[9px] text-slate-500 mb-4 font-bold uppercase">${c.startTime} - ${c.endTime} | ${c.days?.join(', ')}</p><div class="flex gap-2"><button onclick="APP.modals.addClassroom('${c.id}')" class="flex-1 bg-brand-500/10 text-brand-400 text-[9px] font-bold py-2 border border-brand-500/20 rounded uppercase transition hover:bg-brand-500 hover:text-white">Düzenle</button><button onclick="APP.actions.delete('classrooms', '${c.id}')" class="text-red-500 px-3 border border-red-500/20 rounded transition hover:bg-red-500 hover:text-white"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
+                },
+                settingsRooms: () => {
+                    const list = document.getElementById('setting-rooms-list');
+                    if (list) list.innerHTML = (APP.data.settings.rooms || []).map(r => `<div class="flex justify-between items-center p-2 bg-slate-800/40 rounded border border-slate-700 shadow-sm"><span class="text-[10px] font-bold text-white uppercase">${r.name} (KAT: ${r.floor})</span><button onclick="APP.actions.removeBuildingRoom('${r.name}')" class="text-red-500 text-xs hover:text-white transition"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+                },
+                settingsSessions: () => {
+                    const list = document.getElementById('setting-sessions-list');
+                    if (list) list.innerHTML = (APP.data.settings.sessions || []).map(s => `<div class="flex justify-between items-center p-2 bg-slate-800/40 rounded border border-slate-700 shadow-sm"><div class="text-[9px] font-bold text-white uppercase">${s.name} (${s.startTime})<br><span class="text-[7px] text-slate-500">${s.days.join(', ')}</span></div><button onclick="APP.actions.removeSession('${s.id}')" class="text-red-500 text-xs hover:text-white transition"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+                }
+            },
+
+            wizards: {
+                firstSetup: {
+                    data: {},
+                    step: 1,
+                    start: () => {
+                        APP.wizards.firstSetup.step = 1;
+                        APP.wizards.firstSetup.data = { ...APP.data.settings };
+                        APP.wizards.firstSetup.render();
+                    },
+                    render: () => {
+                        const s = APP.wizards.firstSetup.step;
+                        let html = '';
+                        if (s === 1) {
+                            html = `
+                                <h3 class="text-2xl font-bold text-white mb-6 uppercase tracking-widest"><i class="fa-solid fa-rocket text-brand-400"></i> Kurum Kimliği (1/5)</h3>
+                                <div class="space-y-4">
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Kurum Adı</label><input id="wiz-name" class="input-alpha text-lg" value="${APP.wizards.firstSetup.data.name || ''}" placeholder="Örn: Alpha Fen Bilimleri"></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Kurum Tipi</label><select id="wiz-type" class="input-alpha"><option value="Dershane">Dershane / Kurs</option><option value="Etüt">Etüt Merkezi</option><option value="Dil">Dil Kursu</option><option value="Sanat">Sanat / Spor Okulu</option></select></div>
+                                </div>`;
+                        } else if (s === 2) {
+                            html = `
+                                <h3 class="text-2xl font-bold text-white mb-6 uppercase tracking-widest"><i class="fa-solid fa-clock text-brand-400"></i> Zaman Yapılandırması (2/5)</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Varsayılan Ders (Dk)</label><input id="wiz-ldur" type="number" class="input-alpha" value="40"></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Varsayılan Teneffüs (Dk)</label><input id="wiz-bdur" type="number" class="input-alpha" value="10"></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Mesai Başlangıç</label><input id="wiz-start" type="time" class="input-alpha" value="09:00"></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Mesai Bitiş</label><input id="wiz-end" type="time" class="input-alpha" value="21:00"></div>
+                                </div>`;
+                        } else if (s === 3) {
+                            html = `
+                                <h3 class="text-2xl font-bold text-white mb-6 uppercase tracking-widest"><i class="fa-solid fa-layer-group text-brand-400"></i> Akademik Seviyeler (3/5)</h3>
+                                <p class="text-xs text-slate-400 mb-4">Virgül ile ayırarak yazınız. (Örn: 9. Sınıf, 10. Sınıf, 11. Sınıf, 12. Sınıf, Mezun)</p>
+                                <textarea id="wiz-levels" class="input-alpha h-32" placeholder="Seviyeleri buraya girin...">${APP.wizards.firstSetup.data.levels ? APP.wizards.firstSetup.data.levels.join(', ') : '9. Sınıf, 10. Sınıf, 11. Sınıf, 12. Sınıf, Mezun'}</textarea>`;
+                        } else if (s === 4) {
+                            html = `
+                                <h3 class="text-2xl font-bold text-white mb-6 uppercase tracking-widest"><i class="fa-solid fa-box-open text-brand-400"></i> Paketler & Seanslar (4/5)</h3>
+                                <div class="space-y-4">
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Standart Paket İsimleri (Virgül ile)</label><textarea id="wiz-pkgs" class="input-alpha h-20">LGS Tam Kapsam, YKS Sayısal, YKS Eşit Ağırlık, Genel İngilizce</textarea></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Örnek Seanslar Oluşturulsun mu?</label><select id="wiz-sess" class="input-alpha"><option value="yes">Evet (Hafta İçi, Hafta Sonu)</option><option value="no">Hayır, Ben Eklerim</option></select></div>
+                                </div>`;
+                        } else if (s === 5) {
+                            html = `
+                                <h3 class="text-2xl font-bold text-white mb-6 uppercase tracking-widest"><i class="fa-solid fa-gavel text-brand-400"></i> Kural Motoru (5/5)</h3>
+                                <div class="space-y-4">
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Devamsızlık Sınırı (Ders Sayısı)</label><input id="wiz-alimit" type="number" class="input-alpha" value="10"></div>
+                                    <div><label class="text-xs font-bold text-slate-500 uppercase">Sınır Aşımında Aksiyon</label><select id="wiz-action" class="input-alpha"><option value="warning">Sadece Uyar (Sarı Kart)</option><option value="fail">Kur Tekrarı (Kırmızı Kart)</option></select></div>
+                                </div>`;
+                        }
+
+                        APP.modals.open(`
+                            <div class="h-full flex flex-col justify-between">
+                                <div>${html}</div>
+                                <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-800">
+                                    ${s > 1 ? `<button onclick="APP.wizards.firstSetup.prev()" class="px-6 py-3 rounded bg-slate-800 text-white font-bold hover:bg-slate-700">Geri</button>` : ''}
+                                    <button onclick="APP.wizards.firstSetup.next()" class="px-8 py-3 rounded bg-gradient-to-r from-brand-600 to-brand-500 text-white font-bold shadow-lg shadow-brand-900/50 hover:from-brand-500 hover:to-brand-400">${s === 5 ? 'KURULUMU TAMAMLA' : 'İLERİ'}</button>
+                                </div>
+                            </div>
+                        `);
+                    },
+                    next: async () => {
+                        const d = APP.wizards.firstSetup.data;
+                        const s = APP.wizards.firstSetup.step;
+
+                        if (s === 1) { d.name = document.getElementById('wiz-name').value; d.type = document.getElementById('wiz-type').value; if (!d.name) return Swal.fire('Uyarı', 'Kurum adı giriniz', 'warning'); }
+                        if (s === 2) { d.lessonDur = document.getElementById('wiz-ldur').value; d.breakDur = document.getElementById('wiz-bdur').value; d.startHour = document.getElementById('wiz-start').value; d.endHour = document.getElementById('wiz-end').value; }
+                        if (s === 3) { d.levels = document.getElementById('wiz-levels').value.split(',').map(x => x.trim()).filter(x => x); }
+                        if (s === 4) { d.pkgNames = document.getElementById('wiz-pkgs').value.split(',').map(x => x.trim()); d.createSessions = document.getElementById('wiz-sess').value === 'yes'; }
+                        if (s === 5) { d.attLimit = document.getElementById('wiz-alimit').value; d.attAction = document.getElementById('wiz-action').value; await APP.wizards.firstSetup.finish(); return; }
+
+                        APP.wizards.firstSetup.step++;
+                        APP.wizards.firstSetup.render();
+                    },
+                    prev: () => { APP.wizards.firstSetup.step--; APP.wizards.firstSetup.render(); },
+                    finish: async () => {
+                        const d = APP.wizards.firstSetup.data;
+                        d.setupComplete = true;
+
+                        // Generate Initial Sessions if requested
+                        if (d.createSessions) {
+                            d.sessions = [
+                                { id: 'SESS-1', name: 'Hafta İçi Sabah', startTime: '09:00', lessonCount: 4, lessonDur: d.lessonDur, breakDur: d.breakDur, days: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'] },
+                                { id: 'SESS-2', name: 'Hafta Sonu Tam Gün', startTime: '10:00', lessonCount: 6, lessonDur: d.lessonDur, breakDur: d.breakDur, days: ['Cumartesi', 'Pazar'] }
+                            ];
+                        }
+
+                        // Generate Products from Levels & Packages
+                        // We create a Cartesian product of Packages X Levels
+                        // e.g. "LGS Tam Kapsam - 8. Sınıf"
+                        if (d.pkgNames && d.levels) {
+                            const newProds = [];
+                            d.pkgNames.forEach(pkg => {
+                                d.levels.forEach(lvl => {
+                                    newProds.push({
+                                        id: `PRD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                                        name: `${pkg} (${lvl})`,
+                                        level: lvl,
+                                        totalHours: 100, // Default placeholder
+                                        price: 0
+                                    });
+                                });
+                            });
+                            // Save products
+                            for (const p of newProds) await APP.db.save('products', p.id, p);
+                        }
+
+                        // Save Settings
+                        await APP.db.save('settings', 'global', d);
+                        Swal.fire({ title: 'Kurulum Tamamlandı!', text: 'Sistem yeniden başlatılıyor...', icon: 'success', timer: 2000, showConfirmButton: false });
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                }
+            },
+
+            // New Renderer for Dynamic Settings
+            // New Renderer for Dynamic Settings
+            renderSettingsTab: (tabId) => {
+                document.querySelectorAll('.settings-tab-content').forEach(d => d.classList.add('hidden'));
+                document.getElementById('set-tab-' + tabId)?.classList.remove('hidden');
+
+                document.querySelectorAll('#view-settings button[id^="tab-btn-"]').forEach(b => {
+                    b.classList.remove('bg-brand-600', 'text-white');
+                    b.classList.add('bg-slate-800', 'text-brand-400');
+                });
+                const activeBtn = document.getElementById('tab-btn-' + tabId);
+                if (activeBtn) {
+                    activeBtn.classList.remove('bg-slate-800', 'text-brand-400');
+                    activeBtn.classList.add('bg-brand-600', 'text-white');
+                }
+            },
+
+            renderSettingsUI: () => {
+                const s = APP.data.settings;
+                // General
+                if (document.getElementById('st-name')) document.getElementById('st-name').value = s.name || '';
+                if (document.getElementById('st-type')) document.getElementById('st-type').value = s.type || 'Dershane';
+
+                // Time
+                if (document.getElementById('st-ldur')) document.getElementById('st-ldur').value = s.lessonDur || 40;
+                if (document.getElementById('st-bdur')) document.getElementById('st-bdur').value = s.breakDur || 10;
+                if (document.getElementById('st-start')) document.getElementById('st-start').value = s.workStart || '09:00';
+                if (document.getElementById('st-end')) document.getElementById('st-end').value = s.workEnd || '21:00';
+
+                // Academic
+                if (document.getElementById('st-levels')) document.getElementById('st-levels').value = (s.levels || []).join(', ');
+                if (document.getElementById('st-alimit')) document.getElementById('st-alimit').value = s.attLimit || 10;
+                if (document.getElementById('st-action')) document.getElementById('st-action').value = s.attAction || 'warning';
+
+                // Re-render sub-lists
+                APP.render.settingsRooms();
+                // Reuse existing or improved session renderer
+                const sessList = document.getElementById('setting-sessions-list');
+                if (sessList) sessList.innerHTML = (s.sessions || []).map(sess => `<div class="flex justify-between items-center p-3 bg-slate-900/50 rounded border border-slate-700"><div class="text-[10px] uppercase font-bold text-white">${sess.name}<br><span class="text-slate-500 text-[8px]">${sess.days.join(', ')} | ${sess.startTime}</span></div><button onclick="APP.actions.removeSession('${sess.id}')" class="text-red-500 hover:text-white"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+            }
+        };
+
+        const init = async () => {
+            // HYBRID INIT
+            if (window.pywebview) {
+                await localDB.loadAll();
+
+                // SETUP CHECK
+                if (!APP.data.settings.setupComplete) {
+                    // If no setup, launch wizard. Ignore auto-seed student check for now to prioritize wizard.
+                    console.log("First Setup Needed. Launching Wizard...");
+                    return setTimeout(() => APP.wizards.firstSetup.start(), 500);
+                } else {
+                    // Normal Auto-Seed check only if setup IS complete but students are empty (e.g. user cleared data)
+                    if (!APP.data.students || APP.data.students.length === 0) {
+                        // console.log("Fresh install detected. Seeding 20 students...");
+                        // DISABLED: User prefers manual wizard setup now.
+                        // return setTimeout(() => APP.actions.seedInitialData(), 1000);
+                    }
+                }
+
+
+                // Setup Local Listeners
+                ['students', 'teachers', 'classrooms', 'products', 'settings'].forEach(col => {
+                    localDB.onSnapshot(col, (snap) => {
+                        if (col === 'settings') {
+                            const gs = snap.docs.find(d => d.id === 'global');
+                            if (gs) APP.data.settings = gs.data();
+                        } else {
+                            APP.data[col] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        }
+                        APP.render.all();
+                    });
+                });
+            }
+
+            // ONLINE INIT (Always try to connect if configured, for hybrid sync)
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app); auth = getAuth(app);
+                const runAuth = async () => { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } else { await signInAnonymously(auth); } };
+                await runAuth();
+                onAuthStateChanged(auth, (u) => {
+                    user = u;
+                    if (u) {
+                        const dot = document.getElementById('sync-dot');
+                        if (dot) dot.className = "w-2 h-2 bg-brand-500 rounded-full animate-pulse";
+                        ['students', 'teachers', 'classrooms', 'products', 'settings'].forEach(col => {
+                            const colRef = col === 'settings' ? query(collection(db, 'artifacts', appId, 'public', 'data', 'settings')) : query(collection(db, 'artifacts', appId, 'public', 'data', col));
+                            onSnapshot(colRef, (snap) => {
+                                // Online update takes precedence or merges? 
+                                // For now, let online overwrite local if it arrives, 
+                                // but local loadAll() happened first so user sees data immediately.
+                                if (col === 'settings') {
+                                    const gs = snap.docs.find(d => d.id === 'global');
+                                    if (gs) APP.data.settings = gs.data();
+                                } else {
+                                    APP.data[col] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                                }
+                                APP.render.all();
+                            });
+                        });
+                    }
+                });
+            } catch (e) { console.log("Online connection skipped or failed:", e); }
+        };
+        window.onload = () => {
+            // SPLASH TEXT is handled in HTML.
+
+            init();
+            setInterval(() => { const el = document.getElementById('current-time'); if (el) el.innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
+
+            // Splash Animation Trigger
+            setTimeout(() => {
+                const bar = document.getElementById('splash-progress');
+                if (bar) bar.style.width = '100%';
+            }, 100);
+
+            // Hide Splash
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 800);
+                }
+            }, 2500);
+        };
+    </script>
+</body>
+
+</html>

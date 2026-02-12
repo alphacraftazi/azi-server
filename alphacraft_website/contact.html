@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHA CRAFT | İletişim Protokolü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="description"
+        content="Alpha Craft İletişim - Mühendislerimizle irtibata geçin ve işletmeniz için özel yapay zeka çözümlerini hayata geçirin.">
+    <meta name="keywords"
+        content="Yazılım Teklifi Al, İletişim, Eskişehir Teknopark, Alpha Craft Adres, Yazılım Danışmanlığı">
+    <meta name="author" content="Alpay Zorbek">
+</head>
+
+<body class="antialiased h-screen flex flex-col">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed w-full z-50 top-0 border-b border-white/10 bg-[#050510]/90 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div
+                    class="w-10 h-10 border border-cyan-400 bg-cyan-900/20 flex items-center justify-center group-hover:bg-cyan-400 group-hover:text-black transition duration-300">
+                    <span class="font-bold text-xl brand-font">A</span>
+                </div>
+                <span
+                    class="text-xl font-bold tracking-widest text-white brand-font group-hover:text-cyan-400 transition">ALPHA
+                    CRAFT</span>
+            </a>
+            <div class="flex gap-6 items-center">
+                <a href="index.html" class="text-gray-400 hover:text-white text-sm font-mono">ANASAYFA</a>
+                <a href="products.html"
+                    class="text-gray-400 hover:text-white text-sm font-mono hidden md:block">ÜRÜNLER</a>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-white text-2xl hover:text-cyan-400 transition">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="fixed inset-0 bg-[#050510]/95 backdrop-blur-xl z-50 flex flex-col items-center justify-center gap-8 hidden transition-opacity duration-300">
+            <button id="close-menu-btn"
+                class="absolute top-6 right-6 text-white text-3xl hover:text-red-500 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <a href="index.html" class="text-2xl text-white font-mono hover:text-cyan-400 transition">ANASAYFA</a>
+            <a href="products.html" class="text-2xl text-white font-mono hover:text-cyan-400 transition">ÜRÜNLER</a>
+            <a href="index.html#vision" class="text-2xl text-white font-mono hover:text-cyan-400 transition">VİZYON</a>
+            <a href="contact.html" class="btn-neon text-xl px-8 py-3">
+                <i class="fa-solid fa-power-off mr-2"></i> İLETİŞİME GEÇ
+            </a>
+        </div>
+    </nav>
+
+    <div class="flex-1 flex items-center justify-center pt-24 pb-12 px-4 relative">
+        <!-- Background Decor Removed -->
+
+        <div class="cyber-card max-w-4xl w-full grid md:grid-cols-5 z-10 p-0 overflow-hidden rounded-xl">
+
+            <!-- LEFT INFO PANEL -->
+            <div
+                class="md:col-span-2 bg-gradient-to-br from-gray-900 to-black p-10 border-r border-white/5 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-3xl text-white font-bold mb-6 brand-font">BAĞLANTI KUR</h2>
+                    <p class="text-gray-400 mb-8 leading-relaxed">
+                        İşletmeniz için teknolojik bir sıçrama yapmaya hazırsanız, mühendislerimizle görüşmek için formu
+                        doldurun.
+                        Size özel bir çözüm planı ile dönüş yapacağız.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4 text-gray-300">
+                            <div class="w-10 h-10 bg-white/5 rounded flex items-center justify-center text-cyan-400">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 font-mono">E-POSTA</div>
+                                <div>info@alphacraftazi.com</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 text-gray-300">
+                            <div class="w-10 h-10 bg-white/5 rounded flex items-center justify-center text-cyan-400">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 font-mono">LOKASYON</div>
+                                <div>Eskişehir Teknopark / Global Remote</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 text-xs text-gray-600 font-mono">
+                    SECURED BY 256-BIT ENCRYPTION
+                </div>
+            </div>
+
+            <!-- RIGHT FORM PANEL -->
+            <div class="md:col-span-3 p-10 bg-[#0a0a15]">
+                <form id="contactForm" onsubmit="handleFormSubmit(event)">
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-xs text-cyan-400 mb-2 font-mono">AD SOYAD</label>
+                            <input type="text" id="frmName" required
+                                class="w-full bg-black/50 border border-white/10 text-white p-3 rounded focus:border-cyan-400 focus:outline-none transition"
+                                placeholder="Ali Yılmaz">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-cyan-400 mb-2 font-mono">ŞİRKET</label>
+                            <input type="text" id="frmCompany" required
+                                class="w-full bg-black/50 border border-white/10 text-white p-3 rounded focus:border-cyan-400 focus:outline-none transition"
+                                placeholder="Alpha Ltd.">
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs text-cyan-400 mb-2 font-mono">İLETİŞİM (TEL/MAIL)</label>
+                        <input type="text" id="frmContact" required
+                            class="w-full bg-black/50 border border-white/10 text-white p-3 rounded focus:border-cyan-400 focus:outline-none transition"
+                            placeholder="0555...">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs text-cyan-400 mb-2 font-mono">İLGİLENDİĞİNİZ ÜRÜN</label>
+                        <select id="frmProduct"
+                            class="w-full bg-black/50 border border-white/10 text-white p-3 rounded focus:border-cyan-400 focus:outline-none transition">
+                            <option>Seçiniz...</option>
+                            <option>Alpha Stock (Stok Takip)</option>
+                            <option>Alpha Emlak (City CRM)</option>
+                            <option>Alpha Staff (Personel)</option>
+                            <option>Özel Yazılım / AI Projesi</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="block text-xs text-cyan-400 mb-2 font-mono">NOTUNUZ</label>
+                        <textarea id="frmNote" required
+                            class="w-full bg-black/50 border border-white/10 text-white p-3 rounded h-24 focus:border-cyan-400 focus:outline-none transition"
+                            placeholder="İşletmemiz için..."></textarea>
+                    </div>
+
+                    <button type="submit" id="btnSubmit"
+                        class="w-full btn-neon bg-cyan-600 hover:bg-cyan-500 text-white border-none font-bold py-4 transition-all">
+                        TALEBİ GÖNDER <i class="fa-solid fa-paper-plane ml-2"></i>
+                    </button>
+
+                    <div id="formStatus" class="mt-4 text-center hidden"></div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="neural-bg.js"></script>
+    <script>
+        // Mobile Menu Logic
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const closeBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuLinks = mobileMenu.querySelectorAll('a');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+
+        // Close menu when a link is clicked
+        menuLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+
+        // FORM SUBMISSION LOGIC
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnSubmit');
+            const status = document.getElementById('formStatus');
+            const originalText = btn.innerHTML;
+
+            // Loading State
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İLETİLİYOR...';
+            btn.disabled = true;
+            status.innerHTML = '';
+            status.classList.add('hidden');
+
+            const payload = {
+                name: document.getElementById('frmName').value,
+                company: document.getElementById('frmCompany').value,
+                contact_info: document.getElementById('frmContact').value,
+                product_interest: document.getElementById('frmProduct').value,
+                note: document.getElementById('frmNote').value
+            };
+
+            try {
+                // Use relative URL to adapt to the current server port (8000, 8001, etc.)
+                const apiUrl = "/api/requests/create";
+
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    status.innerHTML = '<span class="text-green-400 font-bold"><i class="fa-solid fa-check-circle"></i> TALEBİNİZ ALINDI! MÜHENDİSLERİMİZ DÖNÜŞ YAPACAK.</span>';
+                    status.classList.remove('hidden');
+                    document.getElementById('contactForm').reset();
+                } else {
+                    const errText = await res.text();
+                    throw new Error("Server Error: " + errText);
+                }
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = `<span class="text-red-400 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> HATA: Sunucuya ulaşılamadı (${err.message}).</span>`;
+                status.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

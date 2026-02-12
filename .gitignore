@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+last_error.txt
+
+# Large/Binary/Temp Files
+*.zip
+*.exe
+test_copy/
+AlphaCraftPro_Setup.zip
+alphacraft_website_deploy.zip
+
+# Artifacts
+_artifacts/
+brain/

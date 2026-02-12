@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AZI MOBILE</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #000;
+            color: #00f2ff;
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            /* Mobile Viewport Fix */
+            height: -webkit-fill-available;
+        }
+
+        /* HEADER */
+        .top-bar {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #111;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            background: #111;
+            padding: 5px 10px;
+            border-radius: 99px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            margin-right: 5px;
+            box-shadow: 0 0 5px #22c55e;
+        }
+
+        .dot.off {
+            background: #ef4444;
+            box-shadow: 0 0 5px #ef4444;
+        }
+
+        .dot.warn {
+            background: #eab308;
+            box-shadow: 0 0 5px #eab308;
+        }
+
+        /* MAIN CONTENT */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* ARC REACTOR BUTTON */
+        .arc-reactor {
+            width: 140px;
+            /* Reduced from 200 */
+            height: 140px;
+            /* Reduced from 200 */
+            border-radius: 50%;
+            border: 2px solid #00f2ff;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3), inset 0 0 20px rgba(0, 242, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .arc-reactor:active {
+            transform: scale(0.95);
+        }
+
+        .arc-reactor.listening {
+            box-shadow: 0 0 30px #00f2ff, inset 0 0 30px #00f2ff;
+            border-color: #fff;
+            background: rgba(0, 242, 255, 0.1);
+        }
+
+        .arc-reactor.speaking {
+            box-shadow: 0 0 30px #ef4444, inset 0 0 20px #ef4444;
+            /* Red for synthesis */
+            border-color: #ffaaaa;
+        }
+
+        .mic-icon {
+            font-size: 40px;
+            /* Reduced from 60 */
+            color: #fff;
+            text-shadow: 0 0 10px #00f2ff;
+        }
+
+        /* RIPPLES */
+        .ripple {
+            position: absolute;
+            border: 1px solid rgba(0, 242, 255, 0.5);
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: rippleAnim 2s infinite;
+            opacity: 0;
+        }
+
+        .ripple:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .ripple:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes rippleAnim {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* LOG AREA */
+        .log-area {
+            height: 25%;
+            /* Reduced from 30% */
+            width: 100%;
+            background: #050505;
+            border-top: 1px solid #111;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            font-size: 13px;
+            /* Reduced from 14 */
+            display: flex;
+            flex-direction: column-reverse;
+            padding-bottom: 50px;
+            /* Space for bottom nav/controls if any */
+        }
+
+        .msg {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .msg.user {
+            color: #888;
+            text-align: right;
+        }
+
+        .msg.azi {
+            color: #00f2ff;
+            text-align: left;
+            text-shadow: 0 0 2px #00f2ff;
+        }
+
+        /* FOOTER CONTROLS */
+        .controls {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-mini {
+            background: #111;
+            border: 1px solid #333;
+            color: #666;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 10px;
+        }
+
+        .btn-mini.active {
+            border-color: #22c55e;
+            color: #22c55e;
+            box-shadow: 0 0 5px #22c55e;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <div class="status-pill">
+            <div id="stat-server" class="dot off"></div> SERVER
+        </div>
+        <div class="status-pill">
+            <div id="stat-gps" class="dot off"></div> WATCH: <span id="gps-coords" style="margin-left:5px">OFF</span>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <div class="arc-reactor" id="micBtn">
+            <i class="fa-solid fa-microphone mic-icon"></i>
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+        </div>
+        <div style="margin-top:20px; color:#555; font-size:12px;">TAP TO SPEAK</div>
+    </div>
+
+    <div class="log-area" id="chatLog">
+        <div class="msg azi">> CONNECTED. WAITING FOR VOICE COMMAND...</div>
+    </div>
+
+    <div id="perm-help"
+        style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#222; border:1px solid #f00; padding:20px; z-index:100; text-align:center; width:80%;">
+        <h3 style="color:#f00; margin-top:0;">GÜVENLİK ENGELİ</h3>
+        <p style="font-size:12px; color:#ccc;">Tarayıcı, HTTPS olmadığı için mikrofon iznini engelledi.</p>
+        <p style="font-size:12px; color:#ccc;">Çözüm için telefonda Chrome adres çubuğuna şunu yazın:</p>
+        <code
+            style="background:#000; padding:5px; color:#0f0; display:block; margin:10px 0;">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>
+        <p style="font-size:12px; color:#ccc;">Açılan ayarda "Enabled" seçip IP adresinizi (10.224.58.184) ekleyin.</p>
+        <button onclick="document.getElementById('perm-help').style.display='none'"
+            style="background:#444; color:#fff; border:none; padding:10px 20px; margin-top:10px;">ANLAŞILDI</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="mobile.js"></script>
+</body>
+
+</html>

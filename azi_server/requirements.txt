@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+requests
+aiofiles
+python-multipart
+websockets
+jinja2
+google-generativeai
+python-dotenv
+psycopg2-binary
+pandas
+openpyxl
+pyngrok

@@ -17,3 +17,4 @@ selenium==4.16.0
 undetected-chromedriver==3.5.5
 webdriver-manager==4.0.1
 duckduckgo-search>=4.0.0
+google-api-python-client==2.118.0

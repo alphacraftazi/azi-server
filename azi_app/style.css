@@ -473,3 +473,93 @@ input {
     pointer-events: none;
     z-index: 999;
 }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+
+    /* Genel Düzen */
+    body {
+        height: 100vh;
+        /* Fallback */
+        height: 100dvh;
+    }
+
+    /* Header Düzenlemeleri */
+    header {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    /* Mobilde Gereksiz Butonları Gizle */
+    #blackboxBtn {
+        display: none;
+    }
+
+    .system-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    /* Chat Container */
+    .chat-container {
+        width: 100%;
+        border: none;
+        background: radial-gradient(circle at center, #111 0%, #000 100%);
+    }
+
+    .messages {
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .message {
+        max-width: 95%;
+        /* Mobilde daha geniş */
+    }
+
+    .content {
+        font-size: 14px;
+        /* Mobilde biraz daha küçük font */
+        padding: 10px 14px;
+    }
+
+    /* Input Alanı */
+    .input-area {
+        padding: 15px;
+        padding-bottom: env(safe-area-inset-bottom, 15px);
+        background: #000;
+        /* Mobilde tam siyah daha temiz */
+    }
+
+    .input-container {
+        padding: 3px;
+        border-color: #333;
+    }
+
+    input {
+        padding: 12px;
+        font-size: 16px;
+        /* 16px altı iOS zoom yapar, 16px kalmalı */
+    }
+
+    .icon-btn {
+        padding: 12px;
+    }
+
+    /* Gözü Mobilde Biraz Küçült */
+    .ai-eye-container {
+        min-height: 100px;
+        padding: 10px;
+    }
+
+    .ai-eye {
+        width: 60px;
+        height: 60px;
+    }
+}

@@ -5,14 +5,14 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Dict # Added for connection manager
-from . import models, database
-from .brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather # Added weather
-from .routers import city
+from azi_server import models, database
+from azi_server.brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather # Added weather
+from azi_server.routers import city
 import asyncio
 import json
 import os
 import datetime
-from .brain.notifications import notifier # Added Notification Service
+from azi_server.brain.notifications import notifier # Added Notification Service
 
 # --- WEBSOCKET MANAGER REMOVED (Duplicate) ---
 # Unified ConnectionManager is defined below.
@@ -37,9 +37,9 @@ async def startup_event():
         tags=["satellite", "computer"]
     )
 app.include_router(city.router)
-from .routers import telemetry
+from azi_server.routers import telemetry
 app.include_router(telemetry.router)
-from .routers import factory
+from azi_server.routers import factory
 app.include_router(factory.router)
 # Vision Router issue bypass: Defining directly
 # app.include_router(vision.router)

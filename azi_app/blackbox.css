@@ -784,7 +784,6 @@ tr:hover td {
 }
 
 .btn-delete-card {
-    position: absolute;
     top: 20px;
     right: 20px;
     color: #475569;
@@ -798,6 +797,138 @@ tr:hover td {
 
 .btn-delete-card:hover {
     color: #ef4444;
+}
+
+/* --- MOBILE RESPONSIVE (BLACKBOX) --- */
+@media (max-width: 900px) {
+    body {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Sidebar Top Menu Dönüşümü */
+    .side-panel {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 2px solid var(--neon-blue);
+        padding: 10px;
+        flex-shrink: 0;
+        z-index: 9999;
+    }
+
+    .brand-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: none;
+        margin-bottom: 10px;
+    }
+
+    .brand-box h1 {
+        font-size: 32px;
+    }
+
+    .menu-list {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 5px;
+        /* Scrollbar için yer */
+        white-space: nowrap;
+    }
+
+    .menu-list li {
+        border-left: none;
+        border: 1px solid var(--border-color);
+        background: rgba(0, 0, 0, 0.3);
+        padding: 8px 15px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .menu-list li.active {
+        border-left: none;
+        background: var(--neon-blue);
+        color: #000;
+        border-color: var(--neon-blue);
+        padding-left: 15px;
+        /* Reset padding shift */
+    }
+
+    .status-box {
+        display: none;
+        /* Mobilde yer kazanmak için gizle */
+    }
+
+    /* Ana İçerik */
+    .main-interface {
+        padding: 10px;
+        height: auto;
+        overflow: visible;
+        flex: 1;
+    }
+
+    .top-hud {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .top-hud .flex {
+        flex-wrap: wrap;
+    }
+
+    /* Grid Yapısını Tek Sütuna İndir */
+    .command-grid {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        gap: 15px;
+    }
+
+    .cyber-box {
+        grid-column: auto !important;
+        height: auto !important;
+        min-height: 150px;
+    }
+
+    /* Harita Konteyneri */
+    .map-placeholder,
+    .map-box {
+        min-height: 250px;
+    }
+
+    /* Kartlar Grid */
+    .grid-stats {
+        grid-template-columns: 1fr;
+    }
+
+    #business-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* City CRM Grid */
+    .city-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    #city-map {
+        min-height: 400px;
+    }
+
+    /* Vision Sayfası */
+    #view-vision .grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    #view-vision video {
+        min-height: 300px;
+    }
 }
 
 .btn-manage-card {

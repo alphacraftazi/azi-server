@@ -485,24 +485,33 @@ input {
     }
 
     /* Header Düzenlemeleri */
+    /* Header Düzenlemeleri */
     header {
         padding: 10px 15px;
         flex-wrap: wrap;
         gap: 10px;
+        justify-content: center;
+        /* Mobilde ortala */
     }
 
     .logo {
         font-size: 18px;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
     }
 
-    /* Mobilde Gereksiz Butonları Gizle */
-    #blackboxBtn {
-        display: none;
+    .header-right {
+        gap: 10px;
+        justify-content: center;
+        width: 100%;
     }
 
     .system-btn {
-        padding: 5px 10px;
+        padding: 6px 12px;
         font-size: 12px;
+        white-space: nowrap;
+        /* Metin kaymasın */
     }
 
     /* Chat Container */

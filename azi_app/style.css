@@ -477,17 +477,25 @@ input {
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
 
+    html,
+    body {
+        max-width: 100vw;
+        overflow-x: hidden;
+        position: fixed;
+        /* iOS sarmal kaydırmayı önler */
+        width: 100%;
+    }
+
     /* Genel Düzen */
     body {
-        height: 100vh;
-        /* Fallback */
+        height: 100%;
         height: 100dvh;
     }
 
-    /* Header Düzenlemeleri */
-    /* Header Düzenlemeleri */
-    /* Header Düzenlemeleri */
+    /* Header Fix */
     header {
+        width: 100%;
+        box-sizing: border-box;
         padding: 8px 10px;
         flex-wrap: wrap;
         gap: 5px;
@@ -505,73 +513,48 @@ input {
         gap: 8px;
         justify-content: center;
         width: 100%;
-    }
-
-    .system-btn {
-        padding: 4px 8px;
-        font-size: 11px;
-        white-space: nowrap;
+        flex-wrap: wrap;
     }
 
     /* Chat Container */
     .chat-container {
         width: 100%;
+        max-width: 100%;
         border: none;
-        background: radial-gradient(circle at center, #111 0%, #000 100%);
+        margin: 0;
+        background: #050a10;
+        /* Radial yerine düz */
     }
 
     .messages {
         padding: 10px;
         width: 100%;
         box-sizing: border-box;
+        padding-bottom: 20px;
+        /* Klavye boșluğu */
     }
 
     .message {
-        max-width: 95%;
+        max-width: 90%;
         gap: 8px;
     }
 
-    .avatar {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-        min-height: 32px;
-    }
-
-    .content {
-        font-size: 13px;
-        padding: 10px 12px;
-    }
-
-    /* Input Alanı */
+    /* Input Alanı Sabitleme */
     .input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
         padding: 10px;
         padding-bottom: env(safe-area-inset-bottom, 15px);
         background: #000;
+        z-index: 1000;
     }
 
-    .input-container {
-        padding: 2px;
-        border-color: #333;
+    /* Mesajların input altında kalmasını önle */
+    .messages {
+        margin-bottom: 80px;
     }
 
-    input {
-        padding: 10px;
-        font-size: 16px;
-    }
-
-    .icon-btn {
-        padding: 10px;
-    }
-
-    /* Gözü Mobilde Biraz Küçült */
-    .ai-eye-container {
-        min-height: 80px;
-        padding: 5px;
-    }
-
-    .ai-eye {
-        width: 50px;
-        height: 50px;
-    }
 }

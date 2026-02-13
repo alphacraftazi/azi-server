@@ -803,20 +803,23 @@ tr:hover td {
 @media (max-width: 900px) {
     body {
         flex-direction: column;
-        height: auto;
-        overflow-y: auto;
-        overflow-x: hidden;
+        height: 100vh;
+        /* Fixed height for body */
+        height: 100dvh;
+        overflow: hidden;
+        /* Prevent body scroll */
     }
 
-    /* Sidebar Top Menu Dönüşümü */
+    /* Sidebar Top Menu */
     .side-panel {
         width: 100%;
         height: auto;
         border-right: none;
-        border-bottom: 2px solid var(--neon-blue);
+        border-bottom: 1px solid var(--neon-blue);
         padding: 5px;
         flex-shrink: 0;
-        z-index: 9999;
+        z-index: 50;
+        background: var(--bg-panel);
     }
 
     .brand-box {
@@ -824,8 +827,8 @@ tr:hover td {
         justify-content: space-between;
         align-items: center;
         border-bottom: none;
-        margin-bottom: 5px;
-        padding: 0 5px;
+        margin-bottom: 0px;
+        padding: 0 10px;
     }
 
     .brand-box h1 {
@@ -836,23 +839,29 @@ tr:hover td {
         font-size: 10px;
     }
 
+    /* Menü Listesi (Yatay Scroll) */
     .menu-list {
         display: flex;
         overflow-x: auto;
         gap: 5px;
-        padding-bottom: 2px;
+        padding: 5px 0;
         white-space: nowrap;
         margin: 0;
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scroll iOS */
     }
 
     .menu-list li {
         border-left: none;
         border: 1px solid var(--border-color);
-        background: rgba(0, 0, 0, 0.3);
-        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 8px 12px;
         border-radius: 4px;
         flex-shrink: 0;
-        font-size: 12px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .menu-list li.active {
@@ -860,70 +869,129 @@ tr:hover td {
         background: var(--neon-blue);
         color: #000;
         border-color: var(--neon-blue);
-        padding-left: 10px;
     }
 
+    /* Status Box'ı Geri Getir (Compact) */
     .status-box {
-        display: none;
+        display: flex;
+        /* Geri açıldı */
+        position: absolute;
+        top: 10px;
+        /* Logo hizası */
+        right: 180px;
+        /* Butonların solu (yaklaşık) */
+        border: none;
+        padding: 0;
+        margin: 0;
+        font-size: 10px;
+        background: transparent;
     }
 
-    /* Ana İçerik */
+    /* Eğer sığmıyorsa gizle, ama header'da göstermek daha iyi */
+    .status-box span {
+        display: none;
+        /* Sadece LED kalsın */
+    }
+
+    .status-box .led {
+        width: 10px;
+        height: 10px;
+        box-shadow: 0 0 10px var(--neon-green);
+    }
+
+    /* Ana İçerik Alanı */
     .main-interface {
         padding: 10px;
-        height: auto;
-        overflow: visible;
-        flex: 1;
-        gap: 10px;
+        height: 100%;
+        /* Fill remaining */
+        overflow-y: auto;
+        /* Scroll here */
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-bottom: 80px;
+        /* Bottom spacing */
     }
 
     .top-hud {
         flex-direction: column;
         align-items: flex-start;
-        gap: 5px;
-        margin-bottom: 15px;
-        padding-bottom: 5px;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        flex-shrink: 0;
     }
 
     .hud-title {
         font-size: 18px;
     }
 
-    /* Grid Yapısını Tek Sütuna İndir */
+    .top-hud .flex {
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .top-hud button {
+        flex: 1;
+        /* Butonları yay */
+        font-size: 11px;
+        padding: 8px 5px !important;
+        white-space: nowrap;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* View Panels */
+    .view-panel {
+        height: auto !important;
+        /* Yüksekliği serbest bırak */
+        overflow: visible !important;
+    }
+
+    /* Grid Yapısını Tek Sütuna İndir - FLEX YAPISI */
     .command-grid {
         display: flex;
         flex-direction: column;
-        height: auto;
-        gap: 10px;
+        height: auto !important;
+        /* Grid yüksekliğini boz */
+        gap: 15px;
+        padding-bottom: 20px;
     }
 
     .cyber-box {
         grid-column: auto !important;
+        grid-row: auto !important;
         height: auto !important;
-        min-height: 100px;
-        /* Daha kısa kutular */
-        padding: 10px;
+        /* Sabit yükseklikleri ez */
+        min-height: 120px;
+        width: 100%;
     }
 
-    .big-number {
-        font-size: 24px;
+    /* Tablo ve Liste Kutuları */
+    .terminal-log {
+        height: 100px;
+        /* Log çok uzamasın */
     }
 
     .chart-box-wide {
-        min-height: 200px;
-        padding: 10px;
+        height: auto !important;
+        min-height: 250px;
     }
 
-    /* Harita Konteyneri */
+    /* Harita */
     .map-placeholder,
     .map-box {
-        min-height: 200px;
+        min-height: 250px;
     }
 
     /* Kartlar Grid */
-    .grid-stats {
+    .grid-stats,
+    #business-cards-grid {
         grid-template-columns: 1fr;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 15px;
     }
 
     .cyber-card,
@@ -932,11 +1000,7 @@ tr:hover td {
     }
 
     .card-value {
-        font-size: 28px;
-    }
-
-    #business-cards-grid {
-        grid-template-columns: 1fr;
+        font-size: 32px;
     }
 
     .mc-title {
@@ -944,7 +1008,18 @@ tr:hover td {
     }
 
     .mc-footer-value {
-        font-size: 22px;
+        font-size: 24px;
+    }
+
+    /* Tablo Düzeni (Yatay Scroll) */
+    .overflow-x-auto {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px;
+        /* Tabloyu sıkıştırma, kaydır */
     }
 }
 

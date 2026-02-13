@@ -486,32 +486,31 @@ input {
 
     /* Header Düzenlemeleri */
     /* Header Düzenlemeleri */
+    /* Header Düzenlemeleri */
     header {
-        padding: 10px 15px;
+        padding: 8px 10px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 5px;
         justify-content: center;
-        /* Mobilde ortala */
     }
 
     .logo {
-        font-size: 18px;
+        font-size: 16px;
         width: 100%;
         text-align: center;
-        margin-bottom: 5px;
+        margin-bottom: 2px;
     }
 
     .header-right {
-        gap: 10px;
+        gap: 8px;
         justify-content: center;
         width: 100%;
     }
 
     .system-btn {
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 4px 8px;
+        font-size: 11px;
         white-space: nowrap;
-        /* Metin kaymasın */
     }
 
     /* Chat Container */
@@ -522,53 +521,57 @@ input {
     }
 
     .messages {
-        padding: 15px;
+        padding: 10px;
         width: 100%;
         box-sizing: border-box;
     }
 
     .message {
         max-width: 95%;
-        /* Mobilde daha geniş */
+        gap: 8px;
+    }
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
     }
 
     .content {
-        font-size: 14px;
-        /* Mobilde biraz daha küçük font */
-        padding: 10px 14px;
+        font-size: 13px;
+        padding: 10px 12px;
     }
 
     /* Input Alanı */
     .input-area {
-        padding: 15px;
+        padding: 10px;
         padding-bottom: env(safe-area-inset-bottom, 15px);
         background: #000;
-        /* Mobilde tam siyah daha temiz */
     }
 
     .input-container {
-        padding: 3px;
+        padding: 2px;
         border-color: #333;
     }
 
     input {
-        padding: 12px;
+        padding: 10px;
         font-size: 16px;
-        /* 16px altı iOS zoom yapar, 16px kalmalı */
     }
 
     .icon-btn {
-        padding: 12px;
+        padding: 10px;
     }
 
     /* Gözü Mobilde Biraz Küçült */
     .ai-eye-container {
-        min-height: 100px;
-        padding: 10px;
+        min-height: 80px;
+        padding: 5px;
     }
 
     .ai-eye {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
     }
 }

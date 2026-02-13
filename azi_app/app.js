@@ -189,8 +189,28 @@ function speakTextFallback(text) {
     // Temizle (Markdown ve HTML taglerini kaldır)
     let cleanText = text.replace(/<[^>]*>/g, "").replace(/[*#_`]/g, "");
 
+    window.speechSynthesis.onvoiceschanged = () => {
+        // Sesler yüklendiğinde tetiklenir (Chrome mobilde bazen geç yüklenir)
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    // Türkçe ve Mümkünse Erkek sesi bulmaya çalış
+    // "Google Türkçe" genelde kadın, ama "Yelda" veya "Cem" (iOS) olabilir ??
+    // Android'de genelde tek ses var.
+
+    let selectedVoice = voices.find(v => v.lang.includes("tr") && (v.name.includes("Male") || v.name.includes("Erkek") || v.name.includes("Cem")));
+    if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.includes("tr"));
+    }
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "tr-TR";
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+    // Hızı biraz artır (Yavaş dediği için)
+    utterance.rate = 1.1;
+
     window.speechSynthesis.speak(utterance);
 }
 

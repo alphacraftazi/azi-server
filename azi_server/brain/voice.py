@@ -9,7 +9,13 @@ class VoiceManager:
     """
     def __init__(self):
         # Ses dosyalarının kaydedileceği klasör
-        self.cache_dir = os.path.join(os.getcwd(), "azi_app", "audio_cache")
+        # Production ortamı için güvenli yol belirleme:
+        # Bu dosya: azi_server/brain/voice.py
+        # Hedef: azi_app/audio_cache
+        
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.cache_dir = os.path.join(base_dir, "azi_app", "audio_cache")
+        
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
             

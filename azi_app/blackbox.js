@@ -846,6 +846,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    // REVENUE CHART (Main Trend)
+    const ctxRev = document.getElementById('revenueChart');
+    if (ctxRev) {
+        revenueChart = new Chart(ctxRev, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'TRAFİK',
+                        data: [],
+                        backgroundColor: 'rgba(0, 242, 255, 0.2)',
+                        borderColor: 'rgba(0, 242, 255, 0.5)',
+                        borderWidth: 1,
+                        order: 2
+                    },
+                    {
+                        label: 'GELİR (₺)',
+                        data: [],
+                        type: 'line',
+                        borderColor: '#0f0',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, labels: { color: '#ccc', font: { family: 'Share Tech Mono' } } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { grid: { color: '#222' }, ticks: { color: '#666' } },
+                    y: { grid: { color: '#222' }, ticks: { color: '#666' }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
     // --- CONNECTION WATCHDOG ---
     window.ConnectionWatchdog = {
         isOnline: true,

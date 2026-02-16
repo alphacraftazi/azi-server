@@ -1205,10 +1205,25 @@ tr:hover td {
     }
 
     /* Show limited controls */
+    /* Show limited controls */
     .top-hud button {
         padding: 5px 10px;
         font-size: 15px;
-        /* Larger touch target */
+    }
+
+    /* CUSTOM MENU TOGGLE STYLE */
+    #menu-toggle {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        color: var(--neon-blue) !important;
+        font-size: 28px !important;
+        width: 40px;
+        height: 40px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
 
     /* COMPACT GRIDS */
@@ -1217,11 +1232,13 @@ tr:hover td {
         grid-template-columns: 1fr 1fr !important;
         /* Force 2 Columns */
         grid-template-rows: min-content;
-        /* FIX: Prevent stretching to fill height */
+        /* Prevent row stretching */
         align-items: start;
-        /* FIX: Align items to top */
-        gap: 10px;
+        /* Prevent item stretching */
+        gap: 8px;
+        /* Small gap */
         height: auto !important;
+        padding-bottom: 20px;
     }
 
     /* Specific Boxes */
@@ -1230,10 +1247,16 @@ tr:hover td {
     .log-box,
     .cyber-box {
         grid-column: span 1 !important;
-        height: auto !important;
-        min-height: 100px;
-        padding: 12px;
-        margin-bottom: 0;
+        height: fit-content !important;
+        /* Force strictly content height */
+        min-height: 0 !important;
+        /* Remove min-height enforcement */
+        padding: 10px !important;
+        margin: 0 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start !important;
+        /* Don't space out content */
     }
 
     /* Full Width Items */

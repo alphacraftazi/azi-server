@@ -1187,10 +1187,11 @@ tr:hover td {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         flex-wrap: nowrap !important;
         /* Forces single line */
-        gap: 10px;
+        gap: 2px;
+        /* Minimal gap */
     }
 
     .hud-title {
@@ -1198,7 +1199,8 @@ tr:hover td {
         /* Reduced from 18px */
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 5px;
+        /* Reduced internal gap */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1252,7 +1254,9 @@ tr:hover td {
     .log-box,
     .cyber-box {
         grid-column: span 1 !important;
-        height: fit-content !important;
+        height: auto !important;
+        max-height: 120px !important;
+        /* STRICT LIMIT */
         min-height: 0 !important;
         padding: 8px !important;
         /* Reduced padding */
@@ -1262,6 +1266,12 @@ tr:hover td {
         justify-content: flex-start !important;
         overflow: hidden;
         /* Hide overflow */
+    }
+
+    /* Hide charts in small boxes on mobile to prevent overflow */
+    .revenue-box canvas,
+    .nodes-box canvas {
+        display: none !important;
     }
 
     /* Full Width Items */

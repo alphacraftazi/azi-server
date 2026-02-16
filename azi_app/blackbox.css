@@ -1207,7 +1207,8 @@ tr:hover td {
     /* Show limited controls */
     .top-hud button {
         padding: 5px 10px;
-        font-size: 12px;
+        font-size: 15px;
+        /* Larger touch target */
     }
 
     /* COMPACT GRIDS */
@@ -1215,8 +1216,10 @@ tr:hover td {
         display: grid;
         grid-template-columns: 1fr 1fr !important;
         /* Force 2 Columns */
-        grid-template-rows: auto !important;
-        /* Force auto height rows */
+        grid-template-rows: min-content;
+        /* FIX: Prevent stretching to fill height */
+        align-items: start;
+        /* FIX: Align items to top */
         gap: 10px;
         height: auto !important;
     }
@@ -1231,7 +1234,6 @@ tr:hover td {
         min-height: 100px;
         padding: 12px;
         margin-bottom: 0;
-        /* Reset margins */
     }
 
     /* Full Width Items */

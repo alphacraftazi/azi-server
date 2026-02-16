@@ -1133,6 +1133,7 @@ tr:hover td {
 }
 
 /* --- MOBILE RESPONSIVE --- */
+/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
     body {
         flex-direction: column;
@@ -1165,46 +1166,78 @@ tr:hover td {
 
     /* Header & Menu Toggle */
     .top-hud {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
+        flex-direction: row;
+        /* Keep row for title and toggle */
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        /* Allow wrapping if needed */
     }
 
     .hud-title {
-        font-size: 20px;
+        font-size: 18px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
     .hud-controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
+        display: none;
+        /* Hide extra desktop controls on mobile mostly */
     }
 
-    /* Grids */
+    /* COMPACT GRIDS */
     .command-grid {
-        grid-template-columns: 1fr;
-        /* Single column */
+        grid-template-columns: 1fr 1fr;
+        /* 2 Columns for compact view */
         grid-template-rows: auto;
-        gap: 15px;
+        gap: 10px;
+        /* Reduced gap */
         height: auto;
     }
 
-    /* Specific Boxes */
+    /* Specific Boxes - Compact Heights */
     .revenue-box,
     .nodes-box,
     .log-box,
-    .map-box,
-    .chart-box-wide {
+    .cyber-box {
         grid-column: span 1 !important;
         height: auto;
-        min-height: 150px;
+        min-height: 110px;
+        /* Reduced from 150px */
+        padding: 10px;
     }
 
+    .big-number {
+        font-size: 20px;
+        /* Smaller font */
+        margin: 5px 0;
+    }
+
+    .box-title {
+        font-size: 10px;
+        margin-bottom: 5px;
+    }
+
+    /* Map Box - Full Width */
     .map-box {
-        min-height: 250px;
+        grid-column: span 2 !important;
+        min-height: 180px;
+        /* Reduced from 250px */
+    }
+
+    /* Log Box - Full Width for readability */
+    .log-box {
+        grid-column: span 2 !important;
+        min-height: 100px;
+    }
+
+    /* Chart Box - Full Width */
+    .chart-box-wide {
+        grid-column: span 2 !important;
+        min-height: 150px;
+        padding: 10px;
     }
 
     /* City CRM Grid */
@@ -1222,8 +1255,8 @@ tr:hover td {
 
     #view-vision .md\\:col-span-2 {
         grid-column: span 1;
-        height: 50vh;
-        /* Camera height on mobile */
+        height: 40vh;
+        /* Reduced camera height */
     }
 
     /* Product Cards */
@@ -1233,15 +1266,15 @@ tr:hover td {
 
     /* Wizard Steps */
     .wizard-steps {
-        font-size: 10px;
-        gap: 5px;
+        font-size: 9px;
+        gap: 2px;
     }
 
     .wizard-container {
-        padding: 15px;
+        padding: 10px;
     }
 
-    /* Hamburger Button (Created in HTML) */
+    /* Hamburger Menu Overlay */
     #menu-overlay {
         position: fixed;
         top: 0;

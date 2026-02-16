@@ -28,7 +28,7 @@ if (SpeechRecognition) {
     recognition.onstart = () => {
         isListening = true;
         micBtn.classList.add('listening');
-        addLog("Listening...", "sys");
+        addLog("Dinliyor...", "sys");
     };
 
     recognition.onend = () => {
@@ -78,7 +78,7 @@ cameraInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    addLog("Analyzing Image...", "sys");
+    addLog("Görüntü Analiz Ediliyor...", "sys");
 
     // Convert to Base64
     const reader = new FileReader();
@@ -107,13 +107,13 @@ cameraInput.addEventListener('change', async (e) => {
                 addLog("Vision: " + finalText, "azi");
                 speak(finalText);
             } else {
-                addLog("Vision Error: " + data.error, "sys");
+                addLog("Görüş Hatası: " + data.error, "sys");
                 speak("Görüntü analiz edilemedi efendim.");
             }
 
         } catch (err) {
             console.error(err);
-            addLog("Upload Error.", "sys");
+            addLog("Yükleme Hatası.", "sys");
         }
     };
 });
@@ -122,7 +122,7 @@ cameraInput.addEventListener('change', async (e) => {
 // --- 2. COMMAND PROCESSING ---
 async function processCommand(text) {
     try {
-        addLog("Processing...", "sys");
+        addLog("İşleniyor...", "sys");
 
         const res = await fetch(`${API_URL}/chat/voice`, {
             method: 'POST',
@@ -149,7 +149,7 @@ async function processCommand(text) {
         }
 
     } catch (e) {
-        addLog("Server Error: " + e.message, "sys");
+        addLog("Sunucu Hatası: " + e.message, "sys");
     }
 }
 
@@ -187,7 +187,7 @@ window.speechSynthesis.onvoiceschanged = () => { };
 // --- 4. TELEMETRY (GPS) ---
 function startTracking() {
     if (!navigator.geolocation) {
-        gpsCoords.innerText = "NOT SUPPORTED";
+        gpsCoords.innerText = "DESTEKLENMİYOR";
         return;
     }
 
@@ -211,7 +211,7 @@ function startTracking() {
             console.error("GPS Error:", err);
             statGps.classList.remove('on');
             statGps.classList.add('warn');
-            gpsCoords.innerText = "NO SIGNAL";
+            gpsCoords.innerText = "SİNYAL YOK";
         },
         { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 }
     );
@@ -267,13 +267,13 @@ let socket = null;
 const WS_URL = (window.WS_BASE || API_URL.replace('http', 'ws').replace('/api', '')) + '/ws/mobile_1';
 
 function connectNeuralLink() {
-    console.log("NEURAL LINK: Bağlanıyor...", WS_URL);
+    console.log("NEURAL BAĞLANTI: Bağlanıyor...", WS_URL);
     socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-        console.log("NEURAL LINK: ONLINE");
+        console.log("NEURAL BAĞLANTI: AKTİF");
         statServer.className = "dot"; // Green
-        addLog("Neural Link Active.", "sys");
+        addLog("Neural Bağlantı Aktif.", "sys");
         // Handshake
         socket.send(JSON.stringify({ type: "handshake", client: "mobile", status: "ready" }));
     };
@@ -317,7 +317,7 @@ function connectNeuralLink() {
     };
 
     socket.onclose = () => {
-        console.log("NEURAL LINK: OFFLINE. Retrying...");
+        console.log("NEURAL BAĞLANTI: KOPTU. Tekrar deneniyor...");
         statServer.className = "dot off"; // Red
         setTimeout(connectNeuralLink, 3000); // Auto Reconnect
     };

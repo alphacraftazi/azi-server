@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AZI | SYSTEM CORE</title>
     <link rel="stylesheet" href="blackbox.css?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap"
@@ -12,6 +12,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @media (max-width: 768px) {
+            #menu-toggle {
+                display: inline-block !important;
+            }
+
+            .hidden-mobile {
+                display: none !important;
+            }
+        }
+    </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Leaflet Map -->
@@ -76,6 +87,7 @@
 <body class="cyber-theme">
     <div class="background-grid"></div>
     <div class="overlay-scanline"></div>
+    <div id="menu-overlay" onclick="toggleMenu()"></div>
 
     <nav class="side-panel">
         <div class="brand-box">
@@ -105,10 +117,16 @@
 
         <!-- HEADER -->
         <header class="top-hud">
-            <div class="hud-title" id="pageTitle">GENEL BAKIŞ</div>
+            <div class="hud-title" id="pageTitle">
+                <button id="menu-toggle" class="cyber-btn sm" style="margin-right:10px; display:none;"
+                    onclick="toggleMenu()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                GENEL BAKIŞ
+            </div>
             <div class="flex items-center gap-4">
                 <!-- YENİ KURULUM -->
-                <button onclick="switchView('factory')" class="cyber-btn sm" title="YENİ KURULUM"
+                <button onclick="switchView('factory')" class="cyber-btn sm hidden-mobile" title="YENİ KURULUM"
                     style="background-color:#4ade80; color:#000; border-color:#4ade80; font-weight:bold;">
                     <i class="fa-solid fa-plus"></i> KURULUM
                 </button>
@@ -1020,8 +1038,24 @@
     </div>
 
     <!-- SCRIPTS -->
+    <script>
+        function toggleMenu() {
+            const panel = document.querySelector('.side-panel');
+            const overlay = document.getElementById('menu-overlay');
+            panel.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        // Close menu when a link is clicked
+        document.querySelectorAll('.menu-list li').forEach(item => {
+            item.addEventListener('click', () => {
+                const panel = document.querySelector('.side-panel');
+                if (panel.classList.contains('open')) toggleMenu();
+            });
+        });
+    </script>
     <script src="config.js"></script>
-    <script src="blackbox.js?v=3"></script>
+    <script src="blackbox.js?v=2"></script>
     <script src="city_crm.js?v=2"></script>
     <script src="lead_hunter.js"></script>
     <script src="licenses.js?v=2"></script>

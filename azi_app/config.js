@@ -22,9 +22,13 @@ const AZI_CONFIG = {
             return `${protocol}//${host}:${this.LOCAL_PORT}`;
         }
 
-        // 2. Canlı Ortam & Entegrasyon Modu (Varsayılan)
-        // Artık yerel de olsa, sunucu da olsa TEK AKIL (Render) ile konuşsun.
-        // Mobil ve Masaüstü senkronizasyonu için bu şart.
+        // 2. LAN (Wi-Fi) Erişimi (192.168.x.x veya 10.x.x.x)
+        if (host.startsWith("192.") || host.startsWith("10.") || host.endsWith(".ngrok-free.app")) {
+            const protocol = window.location.protocol;
+            return `${protocol}//${host}:${window.location.port || this.LOCAL_PORT}`;
+        }
+
+        // 3. Canlı Ortam (Render/Cloud)
         return this.PROD_URL;
 
         // Eski: return window.location.origin;

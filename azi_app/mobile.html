@@ -20,7 +20,7 @@
             overflow: hidden;
             user-select: none;
             /* Mobile Viewport Fix */
-            height: -webkit-fill-available;
+            height: 100dvh;
         }
 
         /* HEADER */
@@ -208,10 +208,10 @@
 
     <div class="top-bar">
         <div class="status-pill">
-            <div id="stat-server" class="dot off"></div> SERVER
+            <div id="stat-server" class="dot off"></div> SUNUCU
         </div>
         <div class="status-pill">
-            <div id="stat-gps" class="dot off"></div> WATCH: <span id="gps-coords" style="margin-left:5px">OFF</span>
+            <div id="stat-gps" class="dot off"></div> KONUM: <span id="gps-coords" style="margin-left:5px">KAPALI</span>
         </div>
     </div>
 
@@ -231,11 +231,11 @@
         </div>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
 
-        <div style="margin-top:20px; color:#555; font-size:12px;">TAP TO SPEAK</div>
+        <div style="margin-top:20px; color:#555; font-size:12px;">KONUŞMAK İÇİN DOKUN</div>
     </div>
 
     <div class="log-area" id="chatLog">
-        <div class="msg azi">> CONNECTED. WAITING FOR VOICE COMMAND...</div>
+        <div class="msg azi">> BAĞLANDI. SESLİ KOMUT BEKLENİYOR...</div>
     </div>
 
     <div id="perm-help"

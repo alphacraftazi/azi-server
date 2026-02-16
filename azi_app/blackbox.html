@@ -38,49 +38,54 @@
             z-index: 1;
         }
 
-        .city-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            height: calc(100vh - 140px);
-        }
+        <style>
 
-        .calendar-day {
-            padding: 10px;
-            border: 1px solid #334155;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
+        /* City CRM Specific Styles Moved to CSS */
+        #city-map {
+            height: 100%;
+            width: 100%;
+            min-height: 500px;
+            border-radius: 8px;
+            z-index: 1;
         }
+    </style>
 
-        .calendar-day:hover {
-            background: #3b82f6;
-            color: white;
-        }
+    .calendar-day {
+    padding: 10px;
+    border: 1px solid #334155;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    }
 
-        .activity-feed {
-            max-height: 400px;
-            overflow-y: auto;
-        }
+    .calendar-day:hover {
+    background: #3b82f6;
+    color: white;
+    }
 
-        .feed-item {
-            padding: 10px;
-            border-bottom: 1px solid #334155;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
+    .activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+    }
 
-        .feed-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1e293b;
-            color: #00f2ff;
-        }
+    .feed-item {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    }
+
+    .feed-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    color: #00f2ff;
+    }
     </style>
 </head>
 

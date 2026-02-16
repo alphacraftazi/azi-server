@@ -1132,24 +1132,39 @@ tr:hover td {
     }
 }
 
-/* --- MOBILE RESPONSIVE --- */
-/* --- MOBILE RESPONSIVE --- */
+/* --- DESKTOP SPECIFIC (Moved from HTML) --- */
+@media (min-width: 769px) {
+    .city-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 20px;
+        height: calc(100vh - 140px);
+    }
+}
+
+/* --- MOBILE RESPONSIVE (FIXED) --- */
 @media (max-width: 768px) {
     body {
         flex-direction: column;
-        overflow: auto;
-        /* Allow scroll on mobile body */
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        height: auto !important;
+        min-height: 100vh;
+        display: block;
+        /* Remove flex constraint on body */
     }
 
-    /* Side Panel (Hidden by default) */
+    /* Side Panel */
     .side-panel {
         position: fixed;
-        left: -260px;
+        left: -280px;
         top: 0;
         height: 100vh;
-        z-index: 1000;
+        width: 260px;
+        z-index: 9999;
         transition: 0.3s ease;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.8);
+        background: var(--bg-panel);
     }
 
     .side-panel.open {
@@ -1158,116 +1173,123 @@ tr:hover td {
 
     /* Main Interface */
     .main-interface {
-        padding: 10px;
+        padding: 15px;
         width: 100%;
-        height: auto;
+        height: auto !important;
         overflow: visible;
+        display: block;
+        /* Fix flex layout issues */
     }
 
     /* Header & Menu Toggle */
     .top-hud {
+        display: flex;
         flex-direction: row;
-        /* Keep row for title and toggle */
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
-        /* Allow wrapping if needed */
     }
 
     .hud-title {
         font-size: 18px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
     }
 
-    .hud-controls {
-        display: none;
-        /* Hide extra desktop controls on mobile mostly */
+    /* Hide desktop controls that clutter mobile */
+    .hud-controls,
+    .hud-time {
+        display: none !important;
+    }
+
+    /* Show limited controls */
+    .top-hud button {
+        padding: 5px 10px;
+        font-size: 12px;
     }
 
     /* COMPACT GRIDS */
     .command-grid {
-        grid-template-columns: 1fr 1fr;
-        /* 2 Columns for compact view */
-        grid-template-rows: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr !important;
+        /* Force 2 Columns */
+        grid-template-rows: auto !important;
+        /* Force auto height rows */
         gap: 10px;
-        /* Reduced gap */
-        height: auto;
+        height: auto !important;
     }
 
-    /* Specific Boxes - Compact Heights */
+    /* Specific Boxes */
     .revenue-box,
     .nodes-box,
     .log-box,
     .cyber-box {
         grid-column: span 1 !important;
-        height: auto;
-        min-height: 110px;
-        /* Reduced from 150px */
-        padding: 10px;
+        height: auto !important;
+        min-height: 100px;
+        padding: 12px;
+        margin-bottom: 0;
+        /* Reset margins */
     }
 
-    .big-number {
-        font-size: 20px;
-        /* Smaller font */
-        margin: 5px 0;
-    }
-
-    .box-title {
-        font-size: 10px;
-        margin-bottom: 5px;
-    }
-
-    /* Map Box - Full Width */
+    /* Full Width Items */
     .map-box {
         grid-column: span 2 !important;
-        min-height: 180px;
-        /* Reduced from 250px */
+        min-height: 200px !important;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* Log Box - Full Width for readability */
-    .log-box {
-        grid-column: span 2 !important;
-        min-height: 100px;
-    }
-
-    /* Chart Box - Full Width */
     .chart-box-wide {
         grid-column: span 2 !important;
-        min-height: 150px;
-        padding: 10px;
+        min-height: 150px !important;
+    }
+
+    /* Log box needs to be wide to be readable */
+    .log-box {
+        grid-column: span 2 !important;
     }
 
     /* City CRM Grid */
     .city-grid {
-        grid-template-columns: 1fr;
-        height: auto;
-        gap: 15px;
+        display: flex;
+        flex-direction: column;
+        height: auto !important;
+        gap: 20px;
+    }
+
+    #city-map {
+        min-height: 400px;
     }
 
     /* Vision Grid */
     #view-vision .grid {
-        grid-template-columns: 1fr;
-        height: auto;
+        display: flex;
+        flex-direction: column;
+        height: auto !important;
     }
 
     #view-vision .md\\:col-span-2 {
-        grid-column: span 1;
-        height: 40vh;
-        /* Reduced camera height */
+        height: auto !important;
+        min-height: 300px;
+    }
+
+    #camera-feed {
+        transform: scaleX(-1);
+        max-height: 400px;
     }
 
     /* Product Cards */
     #view-products .grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     /* Wizard Steps */
     .wizard-steps {
-        font-size: 9px;
-        gap: 2px;
+        font-size: 10px;
+        justify-content: space-around;
     }
 
     .wizard-container {
@@ -1281,13 +1303,22 @@ tr:hover td {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9000;
         display: none;
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(3px);
     }
 
     #menu-overlay.show {
         display: block;
+    }
+
+    /* Font Adjustments */
+    .big-number {
+        font-size: 24px;
+    }
+
+    .box-title {
+        font-size: 11px;
     }
 }

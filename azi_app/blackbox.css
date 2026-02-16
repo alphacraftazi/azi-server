@@ -1131,3 +1131,130 @@ tr:hover td {
         transform: rotate(360deg);
     }
 }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        overflow: auto;
+        /* Allow scroll on mobile body */
+    }
+
+    /* Side Panel (Hidden by default) */
+    .side-panel {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .side-panel.open {
+        left: 0;
+    }
+
+    /* Main Interface */
+    .main-interface {
+        padding: 10px;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Header & Menu Toggle */
+    .top-hud {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .hud-title {
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .hud-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Grids */
+    .command-grid {
+        grid-template-columns: 1fr;
+        /* Single column */
+        grid-template-rows: auto;
+        gap: 15px;
+        height: auto;
+    }
+
+    /* Specific Boxes */
+    .revenue-box,
+    .nodes-box,
+    .log-box,
+    .map-box,
+    .chart-box-wide {
+        grid-column: span 1 !important;
+        height: auto;
+        min-height: 150px;
+    }
+
+    .map-box {
+        min-height: 250px;
+    }
+
+    /* City CRM Grid */
+    .city-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+        gap: 15px;
+    }
+
+    /* Vision Grid */
+    #view-vision .grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    #view-vision .md\\:col-span-2 {
+        grid-column: span 1;
+        height: 50vh;
+        /* Camera height on mobile */
+    }
+
+    /* Product Cards */
+    #view-products .grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Wizard Steps */
+    .wizard-steps {
+        font-size: 10px;
+        gap: 5px;
+    }
+
+    .wizard-container {
+        padding: 15px;
+    }
+
+    /* Hamburger Button (Created in HTML) */
+    #menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+        backdrop-filter: blur(2px);
+    }
+
+    #menu-overlay.show {
+        display: block;
+    }
+}

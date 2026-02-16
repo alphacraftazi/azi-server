@@ -1322,3 +1322,41 @@ tr:hover td {
         font-size: 11px;
     }
 }
+
+/* --- UTILITY STYLES (Restored) --- */
+.calendar-day {
+    padding: 10px;
+    border: 1px solid #334155;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.calendar-day:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.feed-item {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.feed-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    color: #00f2ff;
+}

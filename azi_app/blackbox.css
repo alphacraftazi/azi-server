@@ -1187,15 +1187,21 @@ tr:hover td {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        margin-bottom: 15px;
+        flex-wrap: nowrap !important;
+        /* Forces single line */
+        gap: 10px;
     }
 
     .hud-title {
-        font-size: 18px;
+        font-size: 16px;
+        /* Reduced from 18px */
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Hide desktop controls that clutter mobile */
@@ -1205,10 +1211,9 @@ tr:hover td {
     }
 
     /* Show limited controls */
-    /* Show limited controls */
     .top-hud button {
-        padding: 5px 10px;
-        font-size: 15px;
+        padding: 4px 8px;
+        font-size: 13px;
     }
 
     /* CUSTOM MENU TOGGLE STYLE */
@@ -1218,12 +1223,14 @@ tr:hover td {
         box-shadow: none !important;
         padding: 0 !important;
         color: var(--neon-blue) !important;
-        font-size: 28px !important;
-        width: 40px;
-        height: 40px;
+        font-size: 24px !important;
+        width: 32px;
+        /* Smaller touch target visual */
+        height: 32px;
         display: flex !important;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
     /* COMPACT GRIDS */
@@ -1232,31 +1239,29 @@ tr:hover td {
         grid-template-columns: 1fr 1fr !important;
         /* Force 2 Columns */
         grid-template-rows: min-content;
-        /* Prevent row stretching */
         align-items: start;
-        /* Prevent item stretching */
         gap: 8px;
-        /* Small gap */
         height: auto !important;
         padding-bottom: 20px;
     }
 
     /* Specific Boxes */
+    /* Ensure content doesn't break layout */
     .revenue-box,
     .nodes-box,
     .log-box,
     .cyber-box {
         grid-column: span 1 !important;
         height: fit-content !important;
-        /* Force strictly content height */
         min-height: 0 !important;
-        /* Remove min-height enforcement */
-        padding: 10px !important;
+        padding: 8px !important;
+        /* Reduced padding */
         margin: 0 !important;
         display: flex;
         flex-direction: column;
         justify-content: flex-start !important;
-        /* Don't space out content */
+        overflow: hidden;
+        /* Hide overflow */
     }
 
     /* Full Width Items */
@@ -1282,11 +1287,11 @@ tr:hover td {
         display: flex;
         flex-direction: column;
         height: auto !important;
-        gap: 20px;
+        gap: 15px;
     }
 
     #city-map {
-        min-height: 400px;
+        min-height: 350px;
     }
 
     /* Vision Grid */
@@ -1298,12 +1303,12 @@ tr:hover td {
 
     #view-vision .md\\:col-span-2 {
         height: auto !important;
-        min-height: 300px;
+        min-height: 250px;
     }
 
     #camera-feed {
         transform: scaleX(-1);
-        max-height: 400px;
+        max-height: 300px;
     }
 
     /* Product Cards */
@@ -1313,8 +1318,9 @@ tr:hover td {
 
     /* Wizard Steps */
     .wizard-steps {
-        font-size: 10px;
+        font-size: 9px;
         justify-content: space-around;
+        flex-wrap: wrap;
     }
 
     .wizard-container {
@@ -1340,11 +1346,15 @@ tr:hover td {
 
     /* Font Adjustments */
     .big-number {
-        font-size: 24px;
+        font-size: 20px !important;
+        word-break: break-all;
     }
 
     .box-title {
-        font-size: 11px;
+        font-size: 10px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

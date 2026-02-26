@@ -58,7 +58,10 @@ const messagesDiv = document.getElementById("messages");
 // WebSocket Bağlantısı
 // WebSocket Bağlantısı
 // config.js ile tanımlanan global WS_BASE kullanılır
-const wsUrl = window.WS_BASE || "ws://localhost:8001/ws";
+let wsUrl = window.WS_BASE || "ws://localhost:8001/ws";
+if (!wsUrl.endsWith("/ws")) {
+    wsUrl += "/ws";
+}
 const ws = new WebSocket(wsUrl);
 
 const statusSpan = document.querySelector(".status span");

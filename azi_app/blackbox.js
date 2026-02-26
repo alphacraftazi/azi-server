@@ -108,17 +108,26 @@ function sendChat() {
 
 // VOICE RECOGNITION
 function toggleRecording() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Tarayıcınız sesli komutu desteklemiyor (Chrome kullanın).");
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        Swal.fire({
+            title: 'SİSTEM UYARISI',
+            text: 'Tarayıcınız sesli komutu desteklemiyor veya mikrofon izni yok. (Lütfen HTTPS üzerinden Chrome kullanın).',
+            icon: 'warning',
+            background: '#111',
+            color: '#fff',
+            confirmButtonColor: '#00f2ff'
+        });
         return;
     }
 
     if (isListening) {
-        recognition.stop();
+        if (recognition) recognition.stop();
         return;
     }
 
-    recognition = new webkitSpeechRecognition();
+    recognition = new SpeechRecognition();
     recognition.lang = 'tr-TR';
     recognition.continuous = false;
     recognition.interimResults = false;

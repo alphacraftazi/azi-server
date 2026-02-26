@@ -48,11 +48,11 @@ class AZIBrain:
 
         # Model listesi (Öncelik sırasına göre - Mevcut olanlar)
         # HIZ VE KOTA DOSTU LİSTE (SADECE GEÇERLİ MODELLER)
-        # debug_models.py çıktısına göre güncellendi.
         self.model_names = [
+            "gemini-1.5-flash",           # Yeni, hızlı ve kotalara daha dayanıklı
             "gemini-flash-latest",        # (1.5 Flash otomatik güncel)
-            "gemini-pro-latest",          # (1.5 Pro otomatik güncel)
-            "gemini-2.0-flash-lite"       # Yedek
+            "gemini-2.0-flash-lite",      # Yedek
+            "gemini-pro-latest"           # Son çare
         ]
         
         self.system_instruction = """
@@ -217,12 +217,15 @@ class AZIBrain:
                 continue # Bir sonrakini dene
         
         # Hiçbiri çalışmadıysa detaylı bilgi ver
-        return None, (
-            "⚠️ **SİSTEM KOTASI DOLDU**\n\n"
-            "Üzgünüm Alpay Bey, Google yapay zeka servisleri şu an için günlük veya dakikalık işlem limitine ulaştı.\n"
-            "Bu durum geçicidir ancak şu an cevap üretemiyorum.\n\n"
-            "**Teknik Detaylar:**\n" + "\n".join(errors[:3]) # Sadece ilk 3 hatayı göster
+        error_msg = (
+            "⚠️ **AĞ BAĞLANTISI VEYA KOTA SINIRI**\n\n"
+            "Mevcut Google API anahtarınız (Gemini) ücretsiz kullanım limitine ulaştı ("
+            "bütün modeller 429 hatası verdi).\n\n"
+            "Şu anki isteklerinize sadece yerel hafızamla (Omurilik/Refleks) cevap verebilirim.\n\n"
+            "👉 *Çözüm:* Sunucu klasöründeki `.env` dosyasından `GOOGLE_API_KEY` değerini yeni bir anahtarla değiştirip sistemi yeniden başlatın.\n\n"
+            "**Detaylı Hata:**\n" + "\n".join(errors[:2]) # Sadece ilk 2 hatayı göster
         )
+        return None, error_msg
 
 
 

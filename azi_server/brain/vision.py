@@ -9,7 +9,7 @@ from . import logic
 class VisionSystem:
     def __init__(self):
         # KULLANICI İSTEĞİ ÜZERİNE GERİ ALINDI: gemini-flash-latest
-        self.model_names = ["gemini-flash-latest", "gemini-pro-latest"]
+        self.model_names = ["gemini-1.5-flash", "gemini-1.5-pro"]
         self.model_name = self.model_names[0] 
         print(f"VISION SYSTEM INIT: Active Model -> {self.model_name}")
         

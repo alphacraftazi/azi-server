@@ -50,9 +50,9 @@ class AZIBrain:
         # HIZ VE KOTA DOSTU LİSTE (SADECE GEÇERLİ MODELLER)
         self.model_names = [
             "gemini-1.5-flash",           # Yeni, hızlı ve kotalara daha dayanıklı
-            "gemini-flash-latest",        # (1.5 Flash otomatik güncel)
+            "gemini-2.5-flash",           # (1.5 Flash otomatik güncel yerine 2.5 Flash)
             "gemini-2.0-flash-lite",      # Yedek
-            "gemini-pro-latest"           # Son çare
+            "gemini-1.5-pro"              # Son çare (Pro Latest yerine 1.5 Pro)
         ]
         
         self.system_instruction = """

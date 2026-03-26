@@ -21,6 +21,8 @@ SYSTEM_PROMPT = """Sen AZI (Alpha Craft Intelligence) yapay zekasısın. Alpay B
 Cevapların kısa, öz ve profesyonel olmalı. Alpay Bey'e 'Efendim' veya 'Alpay Bey' diye hitap et.
 Sistem kontrolleri ve dosya işlemleri yetkin var."""
 
+import aiohttp
+
 async def call_local_llm(prompt, history=[]):
     """Ollama üzerinden yerel LLM'i çalıştırır."""
     try:
@@ -35,11 +37,13 @@ async def call_local_llm(prompt, history=[]):
             "stream": False
         }
         
-        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
-        if response.status_code == 200:
-            return response.json().get("message", {}).get("content", "Bir hata oluştu.")
-        else:
-            return f"Ollama Hatası: {response.status_code}. Lütfen Ollama'nın çalıştığından emin olun."
+        async with aiohttp.ClientSession() as session:
+            async with session.post(OLLAMA_URL, json=payload, timeout=60) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result.get("message", {}).get("content", "Bir hata oluştu.")
+                else:
+                    return f"Ollama Hatası: {response.status}. Lütfen Ollama'nın çalıştığından emin olun."
     except Exception as e:
         return f"Yerel Zeka Bağlantı Hatası: {str(e)}. (Ollama servisiniz açık mı?)"
 

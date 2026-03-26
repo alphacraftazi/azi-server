@@ -342,329 +342,93 @@ class AZIBrain:
         system_log = ""
         
         try:
-            # LLM'e sor
-            # System Instruction'ı her zaman başa, tarihi onun altına koyuyoruz.
-            full_prompt = f"{self.system_instruction}\n\n--- SOHBET GEÇMİŞİ ---\n{history_context}\nAZI:"
-            ai_response, error = self._generate_with_fallback(full_prompt)
+            from azi_server.brain import tools_definitions
+            import json
             
-            if error:
-                raw_text = f"Hata oluştu: {error}"
-            else:
-                raw_text = ai_response.text
-
-            # --- LABEL KONTROL ---
-            if "[[SEARCH:" in raw_text:
-                start = raw_text.find("[[SEARCH:") + len("[[SEARCH:")
-                end = raw_text.find("]]", start)
-                query = raw_text[start:end].strip()
-                
-                print(f"AZI SEARCHING: {query}")
-                search_results = tools_web.search_web(query)
-                system_log = f"Web Araması: {query}"
-                
-                research_prompt = f"""
-                Sistem Talimatı: {self.system_instruction}
-                KULLANICI SORUSU: {text}
-                ARAŞTIRMA SONUÇLARI: {search_results}
-                GÖREV: Kullanıcıya net cevap ver. Kaynak belirtme.
-                AZI:
-                """
-                final_response, fallback_2 = self._generate_with_fallback(research_prompt)
-                response_text = final_response.text if final_response else "Arama yaptım ancak yorumlayamadım."
-
-            elif "[[GOOGLE_MAIL]]" in raw_text:
-                system_log = "Mailler kontrol ediliyor..."
-                mail_result = tools_google.get_unread_emails()
-                response_text = raw_text.replace("[[GOOGLE_MAIL]]", "").strip()
-                if not response_text: response_text = "Maillerinizi kontrol ettim Alpay Bey."
-                response_text += f"\n\n✉️ GELEN KUTUSU:\n{mail_result}"
-
-            elif "[[GOOGLE_CALENDAR]]" in raw_text:
-                system_log = "Takvim kontrol ediliyor..."
-                cal_result = tools_google.get_calendar_events()
-                response_text = raw_text.replace("[[GOOGLE_CALENDAR]]", "").strip()
-                if not response_text: response_text = "Ajandanıza bakıyorum."
-                response_text += f"\n\n📅 TAKVİM:\n{cal_result}"
+            # 1. Chat nesnesini hazirla (Tarihçe + Sistem + Araçlar)
+            model = genai.GenerativeModel(
+                model_name="gemini-1.5-flash",
+                system_instruction=self.system_instruction,
+                tools=tools_definitions.azi_tool_list
+            )
             
-            elif "[[SEND_MAIL:" in raw_text:
-                start = raw_text.find("[[SEND_MAIL:") + len("[[SEND_MAIL:")
-                end = raw_text.find("]]", start)
-                params = raw_text[start:end].split("|")
-                if len(params) >= 3:
-                    to_email = params[0].strip()
-                    subject = params[1].strip()
-                    body = params[2].strip()
-                    
-                    # Ek Dosya (Opsiyonel 4. Parametre)
-                    attachments = []
-                    if len(params) > 3:
-                         file_arg = params[3].strip()
-                         # Eğer absolute path değilse user_files içinde ara veya sunum klasörlerinde
-                         # Kullanıcının tam yol verme olasılığı düşük, biz bulmaya çalışalım
-                         if os.path.exists(file_arg):
-                             attachments.append(file_arg)
-                         else:
-                             # Yaygın klasörlerde ara (Presentations)
-                             # Bu kısmı geliştirebiliriz.
-                             attachments.append(file_arg) # tools_smtp check edecek
-
-                    system_log = f"Mail Gönderiliyor: {to_email} (Ek: {len(attachments)})"
-                    send_result = tools_smtp.send_email_smtp(to_email, subject, body, attachment_paths=attachments)
-                    response_text = raw_text[:raw_text.find("[[SEND_MAIL:")].strip() + f"\n\n({send_result})"
-                else:
-                    response_text = "HATA: Mail formatı yanlış. [[SEND_MAIL: Alıcı | Konu | Mesaj]]"
-
-            elif "[[GOOGLE_SEND_MAIL:" in raw_text:
-                # Eski Google API Yöntemi (Yedek)
-                start = raw_text.find("[[GOOGLE_SEND_MAIL:") + len("[[GOOGLE_SEND_MAIL:")
-                end = raw_text.find("]]", start)
-                params = raw_text[start:end].split("|")
-                if len(params) >= 3:
-                    to_email = params[0].strip()
-                    subject = params[1].strip()
-                    body = params[2].strip()
-                    send_result = tools_google.send_email(to_email, subject, body)
-                    response_text = raw_text[:raw_text.find("[[GOOGLE_SEND_MAIL:")].strip() + f"\n({send_result})"
-                else:
-                    response_text = "HATA: Mail formatı yanlış. (Alici | Konu | Mesaj)"
-
-            elif "[[WEATHER:" in raw_text:
-                start = raw_text.find("[[WEATHER:") + len("[[WEATHER:")
-                end = raw_text.find("]]", start)
-                city = raw_text[start:end].strip()
-                if not city: city = "Istanbul"
-                
-                weather_info = weather.weather_service.get_weather(city)
-                system_log = f"Hava Durumu: {city}"
-                
-                # Hava durumunu kullanıcıya okuyacak metne dönüştür
-                response_text = raw_text.replace(f"[[WEATHER:{city}]]", "").strip()
-                if not response_text: response_text = "Hava durumu verisi alindi."
-                response_text += f"\n\n🌤️ {weather_info}"
-                
-            elif "[[OPEN_BLACKBOX]]" in raw_text:
-                action = "open_blackbox"
-                response_text = raw_text.replace("[[OPEN_BLACKBOX]]", "").strip()
+            # API Gecmis formatini sekillendir
+            formatted_history = []
+            for mem in history_objs:
+                r = "model" if mem.memory_type == "azi_response" else "user"
+                formatted_history.append({"role": r, "parts": [mem.content]})
             
-            elif "[[OPEN_APP:" in raw_text:
-                start = raw_text.find("[[OPEN_APP:") + len("[[OPEN_APP:")
-                end = raw_text.find("]]", start)
-                app_name = raw_text[start:end].strip()
+            chat = model.start_chat(history=formatted_history)
+            
+            MAX_TURNS = 5
+            current_turn = 0
+            prompt = text
+            
+            while current_turn < MAX_TURNS:
+                current_turn += 1
                 
-                tool_result = tools_pc.open_application(app_name)
-                system_log = f"Uygulama: {tool_result}"
-                response_text = raw_text[:raw_text.find("[[OPEN_APP:")].strip() + f"\n({tool_result})"
-
-            elif "[[PC_STATUS]]" in raw_text:
-                system_log = "PC Durumu İçin Ajan'a Sinyal Gönderiliyor..."
-                response_text = raw_text.replace("[[PC_STATUS]]", "").strip()
-                if not response_text: response_text = "Sistem durumu taraması için Ajan uyandırıldı..."
-                action = "agent_command:PC_STATUS"
+                response = chat.send_message(prompt)
                 
-            elif "[[TERM:" in raw_text:
-                start = raw_text.find("[[TERM:") + len("[[TERM:")
-                end = raw_text.find("]]", start)
-                cmd = raw_text[start:end].strip()
-                
-                system_log = f"Ajan Terminal Komutu: {cmd}"
-                response_text = raw_text[:raw_text.find("[[TERM:")].strip()
-                if not response_text: response_text = f"Sistem komutu Ajan'a iletiliyor: {cmd}"
-                action = f"agent_command:TERM:{cmd}"
-
-            elif "[[KILL:" in raw_text:
-                start = raw_text.find("[[KILL:") + len("[[KILL:")
-                end = raw_text.find("]]", start)
-                pname = raw_text[start:end].strip()
-                
-                system_log = f"Ajan İşlem Sonlandırılıyor: {pname}"
-                response_text = raw_text[:raw_text.find("[[KILL:")].strip()
-                if not response_text: response_text = f"Kapatma emri Ajan'a gönderiliyor: {pname}"
-                action = f"agent_command:KILL:{pname}"
-
-            elif "[[READ_FILES:" in raw_text:
-                start = raw_text.find("[[READ_FILES:") + len("[[READ_FILES:")
-                end = raw_text.find("]]", start)
-                location = raw_text[start:end].strip()
-                
-                tool_result = tools_pc.list_user_files(location)
-                system_log = f"Dosya Okuma: {location}"
-                response_text = raw_text[:raw_text.find("[[READ_FILES:")].strip() + f"\n\n📂 DOSYALAR:\n{tool_result}"
-                
-            elif "[[CMD:" in raw_text:
-                start = raw_text.find("[[CMD:") + len("[[CMD:")
-                end = raw_text.find("]]", start)
-                cmd_content = raw_text[start:end]
-                parts = cmd_content.split("|")
-                if len(parts) >= 2:
-                    license_key = parts[0].strip()
-                    cmd_name = parts[1].strip()
-                    cmd_args = parts[2].strip() if len(parts) > 2 else "{}"
+                # Fonksiyon cagrisi (Tool Call) var mi?
+                if response.parts and hasattr(response.parts[0], 'function_call') and response.parts[0].function_call:
+                    fc = response.parts[0].function_call
+                    func_name = fc.name
+                    args = {k: v for k, v in fc.args.items()}
+                    print(f"AZI ARAÇ KULLANIYOR: {func_name}")
                     
-                    # Action format: client_command:KEY:CMD:ARGS
-                    action = f"client_command:{license_key}:{cmd_name}:{cmd_args}"
-                    system_log = f"Komut: {cmd_name} -> {license_key}"
-                    response_text = raw_text.replace(f"[[CMD:{cmd_content}]]", "").strip() 
-                    if not response_text: response_text = f"Komut iletildi: {cmd_name} ({license_key})"
-                else:
-                     response_text = "HATA: Komut formatı yanlış. (Lisans | Komut | Arg)"
-
-            elif "[[SEND_PRESENTATION:" in raw_text:
-                start = raw_text.find("[[SEND_PRESENTATION:") + len("[[SEND_PRESENTATION:")
-                end = raw_text.find("]]", start)
-                params = raw_text[start:end].split("|")
-                # Format: [[SEND_PRESENTATION: product_key | email]]
-                if len(params) >= 2:
-                    prod_key = params[0].strip().lower() # stock, crm, staff
-                    target_email = params[1].strip()
+                    tool_result = "Araç bulunamadı."
                     
-                    # Eşleşme bul (stok -> stock, emlak -> crm vb.)
-                    key_map = {
-                        "stok": "stock", "stock": "stock",
-                        "emlak": "crm", "crm": "crm", "city": "crm",
-                        "staff": "staff", "personel": "staff",
-                        "yatırım": "invest", "invest": "invest"
-                    }
-                    mapped_key = key_map.get(prod_key, "stock") # Varsayılan stock
-                    
-                    data = marketing.get_presentation_content(mapped_key)
-                    
-                    if data:
-                        # TOPLU GÖNDERİM MODU
-                        if target_email.lower() in ["tümü", "tumu", "all", "hepsi", "leads"]:
-                            pending_leads = db.query(models.Lead).filter(models.Lead.status == "new").limit(5).all() # Güvenlik için batch 5
-                            
-                            if not pending_leads:
-                                response_text = "Henüz gönderim yapılmamış (yeni) potansiyel müşteri bulunmuyor. Önce 'Müşteri Avcısı'nı çalıştırın."
-                            else:
-                                success_count = 0
-                                sent_addresses = []
-                                
-                                for lead in pending_leads:
-                                    try:
-                                        # Özelleştirme (Varsa)
-                                        custom_body = data["body"] # İleride lead.name varsa eklenebilir
-                                        
-                                        res = tools_smtp.send_email_smtp(
-                                            lead.email,
-                                            data["subject"],
-                                            custom_body,
-                                            attachment_paths=data["attachments"]
-                                        )
-                                        
-                                        if "başarıyla" in res:
-                                            lead.status = "contacted"
-                                            lead.last_contacted = datetime.datetime.utcnow()
-                                            success_count += 1
-                                            sent_addresses.append(lead.email)
-                                            # Rate limit zaten tools_smtp içinde var ama burada da kısa bir 'düşünme' payı
-                                            # time.sleep(1) # Gerek yok, func içinde bloklanıyor
-                                    except Exception as e:
-                                        print(f"BULK MAIL ERROR: {e}")
-                                
-                                db.commit()
-                                response_text = f"📢 **Toplu Gönderim Başladı**\n\n{len(pending_leads)} adaydan {success_count} tanesine başarılı şekilde sunum yollandı.\n\nGönderilenler:\n- " + "\n- ".join(sent_addresses)
-                                if len(pending_leads) < 5:
-                                    response_text += "\n\n(Kota/Hız limiti nedeniyle 5'erli paketler halinde gönderiyorum)"
-
-                        else:
-                            # TEKİL GÖNDERİM (ESKİ YÖNTEM)
-                            system_log = f"Sunum Gönderiliyor: {mapped_key} -> {target_email}"
-                            send_res = tools_smtp.send_email_smtp(
-                                target_email, 
-                                data["subject"], 
-                                data["body"], 
-                                attachment_paths=data["attachments"]
-                            )
-                            response_text = raw_text[:raw_text.find("[[SEND_PRESENTATION:")].strip() + f"\n\n✅ {data['product_name']} sunumu gönderildi.\n({send_res})"
-                    else:
-                        response_text = "HATA: Sunum verisi bulunamadı."
-                else:
-                    response_text = "HATA: Format yanlış. [[SEND_PRESENTATION: ürün | mail]]"
-
-            elif "[[FIND_LEADS:" in raw_text:
-                start = raw_text.find("[[FIND_LEADS:") + len("[[FIND_LEADS:")
-                end = raw_text.find("]]", start)
-                sector_arg = raw_text[start:end].strip().lower()
-                
-                # Sektör eşleştirmesi
-                if "tümü" in sector_arg or "hepsi" in sector_arg or "all" in sector_arg: target_sector = "all"
-                elif "kafe" in sector_arg or "cafe" in sector_arg: target_sector = "cafe"
-                elif "restoran" in sector_arg or "yemek" in sector_arg: target_sector = "restaurant"
-                elif "emlak" in sector_arg: target_sector = "real_estate"
-                elif "market" in sector_arg or "perakende" in sector_arg: target_sector = "retail"
-                elif "kurumsal" in sector_arg or "holding" in sector_arg: target_sector = "corporate"
-                else: target_sector = "all" # Varsayılan olarak hepsini tarasın (Kullanıcı 'avla' dediğinde)
-                
-                system_log = f"Müşteri Avı Başlatıldı: {target_sector.upper()}"
-                
-                system_log = f"Müşteri Avı Başlatıldı: {target_sector}"
-                
-                # Senkron olarak çalıştırıyoruz (Blocking olabilir, thread gerekebilir ama şimdilik basit)
-                try:
-                    leads = lead_hunter.hunter_service.search_leads(db, target_sector)
-                    count = len(leads)
-                    response_text = raw_text[:raw_text.find("[[FIND_LEADS:")].strip() + f"\n\n🎯 **AVLANMA SONUCU**\n\nİnternetin derinliklerinden **{count} adet** potansiyel müşteri e-postası yakaladım.\n\nBulunan Bazı Adresler:\n- " + "\n- ".join(leads[:5])
-                    if count > 5: response_text += f"\n...ve {count-5} tane daha."
-                    
-                    response_text += "\n\nBu adreslere sunum göndermek için: `[[SEND_PRESENTATION: stock | tumu]]` henüz aktif değil, tek tek gönderebilirsiniz."
-                except Exception as e:
-                    response_text = f"HATA: Müşteri avı sırasında sorun oluştu: {str(e)}"
-
-            elif "[[ANALYSIS]]" in raw_text:
-                system_log = "Analiz Raporu Oluşturuluyor..."
-                report = analysis.analysis_service.generate_brief_for_azi(db)
-                response_text = raw_text.replace("[[ANALYSIS]]", "").strip()
-                response_text += f"\n\n📊 SİSTEM ANALİZİ:\n{report}"
-
-            elif "[[LEARN:" in raw_text:
-                start = raw_text.find("[[LEARN:") + len("[[LEARN:")
-                end = raw_text.find("]]", start)
-                info = raw_text[start:end].strip()
-                
-                # Bilgiyi 'fact' olarak kaydet
-                fact_mem = models.AIMemory(
-                    memory_type="fact",
-                    content=info,
-                    timestamp=datetime.datetime.utcnow()
-                )
-                db.add(fact_mem)
-                
-                system_log = f"Bilgi Öğrenildi: {info}"
-                response_text = raw_text.replace(f"[[LEARN:{info}]]", "").strip()
-                if not response_text: response_text = "Bunu hafızama kaydettim Alpay Bey."
-
-                if not response_text: response_text = "Bunu hafızama kaydettim Alpay Bey."
-
-            elif "[[PUSH_NOTIFICATION:" in raw_text:
-                start = raw_text.find("[[PUSH_NOTIFICATION:") + len("[[PUSH_NOTIFICATION:")
-                end = raw_text.find("]]", start)
-                content = raw_text[start:end]
-                params = content.split("|")
-                
-                if len(params) >= 2:
-                    title = params[0].strip()
-                    msg = params[1].strip()
-                    
-                    # Async gönder (Main thread'de olduğumuz için ensure_future veya run_until_complete gerekebilir ama
-                    # notifier.send_async zaten loop'a atıyor)
-                    import asyncio
+                    # Dağıtıcı (Dispatcher)
                     try:
-                        # Mevcut loop'u bulmaya çalış
-                        loop = asyncio.get_event_loop()
-                        loop.create_task(notifier.send_async(title, msg, priority=3))
-                    except:
-                        # Loop yoksa senkron dene (nadir durum)
-                        notifier.send(title, msg, priority=3)
+                        func_to_call = next((f for f in tools_definitions.azi_tool_list if f.__name__ == func_name), None)
+                        if func_to_call:
+                            tool_result = func_to_call(**args)
+                        else:
+                            # Eger manuel function handler gerekirse:
+                            pass
+                    except Exception as exe:
+                        tool_result = f"Araç çalıştırılırken hata oluştu: {str(exe)}"
                         
-                    system_log = f"Bildirim Gönderildi: {title}"
-                    response_text = raw_text.replace(f"[[PUSH_NOTIFICATION:{content}]]", "").strip()
-                    if not response_text: response_text = "Rapor telefonunuza iletildi Alpay Bey."
-                    response_text += "\n(Bildirim Gönderildi 📲)"
+                    # Ajanlara (Local PC) giden özel emirler kontrolü
+                    if tool_result == "COMMAND_QUEUED_FOR_AGENT":
+                        if func_name == "get_system_status":
+                            action = "agent_command:PC_STATUS"
+                        elif func_name == "run_system_command_terminal":
+                            action = f"agent_command:TERM:{args.get('command')}"
+                        elif func_name == "kill_process":
+                            action = f"agent_command:KILL:{args.get('process_name')}"
+                        elif func_name == "open_application":
+                            app_name = args.get('app_name', '')
+                            action = f"agent_command:OPEN_APP:{app_name}"
+                            
+                        system_log = f"Ajan Emri Gönderildi: {func_name}"
+                        # Ajan asenkron oldugu icin LLM e yalandan sonuc donuyoruz ki cevap uretmeyi bitirsin
+                        tool_result = "Sistem komutu Ajan'a (istemci bilgisayarına) başarıyla iletildi. Kullanıcıya işlemin arka planda başlatıldığını ve kullanıcının birazdan sonucu göreceğini bildirin."
+                        
+                    # Push/Email vs
+                    if func_name in ["send_email_smtp", "push_notification_to_mobile"]:
+                         system_log = f"Dışa Aktarım: {func_name}"
+                    
+                    # Sonucu LLM'e geri fırlat (ReAct Loop Devamı)
+                    from google.generativeai.types import content_types
+                    prompt = content_types.Part(
+                        function_response=content_types.FunctionResponse(
+                            name=func_name, response={"result": str(tool_result)}
+                        )
+                    )
+                    continue # Döngüye devam et, yeni karari LLM versin
+                    
                 else:
-                    response_text = "HATA: Bildirim formatı yanlış."
-
-            else:
-                response_text = raw_text
+                    # Fonksiyon yok, standart metin dönmüş
+                    if response.text:
+                        response_text = response.text
+                        break
+                    else:
+                        response_text = "HMM... Boş yanıt (Belki güvenlik filtresi takıldı)."
+                        break
+                        
+            if current_turn >= MAX_TURNS:
+                response_text = "Düşünce döngüm işlem limitine takıldı (Çok fazla araç kullanımı)."
 
         except Exception as e:
             error_msg = str(e)

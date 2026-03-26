@@ -166,6 +166,28 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
         self.client_map: Dict[str, WebSocket] = {}
+        self.agent_connections: list[WebSocket] = []
+
+    async def connect_agent(self, websocket: WebSocket):
+        await websocket.accept()
+        self.agent_connections.append(websocket)
+        print("Omnipresent Agent connected.")
+
+    def disconnect_agent(self, websocket: WebSocket):
+        if websocket in self.agent_connections:
+            self.agent_connections.remove(websocket)
+            print("Omnipresent Agent disconnected.")
+
+    async def send_agent_command(self, command: str):
+        if not self.agent_connections:
+            return False
+        for agent in self.agent_connections:
+            try:
+                await agent.send_text(command)
+                return True
+            except Exception as e:
+                print(f"Agent WS Error: {e}")
+        return False
 
     async def connect(self, websocket: WebSocket, client_id: str = None):
         await websocket.accept()
@@ -271,19 +293,28 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
             
             # --- ACTION HANDLER (COMMAND QUEUE) ---
             act = result.get("action")
-            if act and act.startswith("client_command:"):
-                try:
-                    # Format: client_command:LICENSE:CMD:ARGS_JSON
-                    parts = act.split(":", 3)
-                    if len(parts) >= 4:
-                        l_key = parts[1]
-                        cmd_name = parts[2]
-                        args_val = json.loads(parts[3])
-                        
-                        # Kuyruğa Ekle
-                        products.product_service.queue_command(db, l_key, cmd_name, args_val)
-                except Exception as e:
-                    print(f"Command Queue Error: {e}")
+            if act:
+                if act.startswith("agent_command:"):
+                    # Ana beyin ajan komutu verdi, yerel Ajan'a yolla
+                    cmd_to_agent = act.replace("agent_command:", "")
+                    success = await manager.send_agent_command(cmd_to_agent)
+                    if not success:
+                        result["text"] += "\n\n⚠️ UYARI: İşletim sistemi komutu gönderilemedi. Bilgisayarınızdaki AZI Ajanı (agent.py) şu an aktif değil veya buluta bağlı değil."
+
+                elif act.startswith("client_command:"):
+                    try:
+                        # Format: client_command:LICENSE:CMD:ARGS_JSON
+                        parts = act.split(":", 3)
+                        if len(parts) >= 4:
+                            l_key = parts[1]
+                            cmd_name = parts[2]
+                            args_val = json.loads(parts[3])
+                            
+                            # Kuyruğa Ekle
+                            from azi_server.brain import core_products
+                            core_products.product_service.queue_command(db, l_key, cmd_name, args_val)
+                    except Exception as e:
+                        print(f"Command Queue Error: {e}")
             
             # Cevabı Gönder
             response_payload = {
@@ -311,6 +342,28 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
     except Exception as e:
         print(f"WebSocket Hatası: {e}")
         manager.disconnect(websocket)
+
+@app.websocket("/ws/agent")
+async def agent_websocket_endpoint(websocket: WebSocket):
+    """
+    Sadece kullanıcının fiziksel bilgisayarında çalışan Ajan buraya bağlanır.
+    Fiziksel donanımdan gelen yanıtları UI'a yayınlar.
+    """
+    await manager.connect_agent(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Ajan'dan gelen cevabı direkt tüm aktif kullanıcı ekranlarına (web arayüzüne) gönder
+            await manager.broadcast_json({
+                "type": "response",
+                "message": f"🤖 **Ajan Raporu:**\n{data}",
+                "timestamp": str(datetime.datetime.utcnow())
+            })
+    except WebSocketDisconnect:
+        manager.disconnect_agent(websocket)
+    except Exception as e:
+        print(f"Agent WS Handler Hatası: {e}")
+        manager.disconnect_agent(websocket)
 
 async def process_command(data: str):
     """

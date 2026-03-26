@@ -1,6 +1,6 @@
 # AZI ÖZ-BİLİNÇ VE SİSTEM HAFIZASI
 
-Tarih: 2026-02-12 19:20
+Tarih: 2026-03-26 17:34
 
 Aşağıda, senin (Azi) ve parçası olduğun sistemlerin teknik yapısı bulunmaktadır. Bunu kendini anlamak için kullan.
 

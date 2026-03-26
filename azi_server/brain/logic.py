@@ -456,28 +456,30 @@ class AZIBrain:
                 response_text = raw_text[:raw_text.find("[[OPEN_APP:")].strip() + f"\n({tool_result})"
 
             elif "[[PC_STATUS]]" in raw_text:
-                system_log = "PC Durumu Kontrol Ediliyor..."
-                tool_result = tools_pc.get_system_status()
+                system_log = "PC Durumu İçin Ajan'a Sinyal Gönderiliyor..."
                 response_text = raw_text.replace("[[PC_STATUS]]", "").strip()
-                response_text += f"\n\n{tool_result}"
+                if not response_text: response_text = "Sistem durumu taraması için Ajan uyandırıldı..."
+                action = "agent_command:PC_STATUS"
                 
             elif "[[TERM:" in raw_text:
                 start = raw_text.find("[[TERM:") + len("[[TERM:")
                 end = raw_text.find("]]", start)
                 cmd = raw_text[start:end].strip()
                 
-                system_log = f"Terminal Komutu: {cmd}"
-                tool_result = tools_pc.run_system_command(cmd)
-                response_text = raw_text[:raw_text.find("[[TERM:")].strip() + f"\n\n{tool_result}"
+                system_log = f"Ajan Terminal Komutu: {cmd}"
+                response_text = raw_text[:raw_text.find("[[TERM:")].strip()
+                if not response_text: response_text = f"Sistem komutu Ajan'a iletiliyor: {cmd}"
+                action = f"agent_command:TERM:{cmd}"
 
             elif "[[KILL:" in raw_text:
                 start = raw_text.find("[[KILL:") + len("[[KILL:")
                 end = raw_text.find("]]", start)
                 pname = raw_text[start:end].strip()
                 
-                system_log = f"İşlem Sonlandırılıyor: {pname}"
-                tool_result = tools_pc.kill_process(pname)
-                response_text = raw_text[:raw_text.find("[[KILL:")].strip() + f"\n\n{tool_result}"
+                system_log = f"Ajan İşlem Sonlandırılıyor: {pname}"
+                response_text = raw_text[:raw_text.find("[[KILL:")].strip()
+                if not response_text: response_text = f"Kapatma emri Ajan'a gönderiliyor: {pname}"
+                action = f"agent_command:KILL:{pname}"
 
             elif "[[READ_FILES:" in raw_text:
                 start = raw_text.find("[[READ_FILES:") + len("[[READ_FILES:")

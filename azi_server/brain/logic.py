@@ -99,15 +99,19 @@ class AZIBrain:
     def _local_reflex(self, text, db=None):
         """İnternet veya LLM koptuğunda devreye giren hızlı tepki mekanizması."""
         t = text.lower()
-        if "durum" in t or "performans" in t:
-            return tools_pc.get_system_status()
+        import builtins
+        is_connected = hasattr(builtins, "ws_manager") and len(builtins.ws_manager.agent_connections) > 0
+
+        if "durum" in t or "performans" in t or "bağlan" in t or "ajan" in t or "masaüstü" in t:
+            if is_connected:
+                return "✅ Masaüstü Ajanınız BAĞLI. Yerel zeka (Ollama) aktif çalışıyor, ancak Google API servisleri şu an dinleniyor (429)."
+            else:
+                return "❌ Masaüstü Ajanınız şu an BAĞLI DEĞİL. Ayrıca Google bulut sistemlerine (Gemini) şu an ulaşılamıyor. Lütfen evdeki bilgisayarda agent.py'yi başlattığınızdan emin olun."
         if "hava" in t:
             return "Şu an internete erişemediğim için hava durumuna bakamıyorum Alpay Bey."
         if "merhaba" in t or "selam" in t:
             return "Merhaba Alpay Bey, şu an LLM bağlantım zayıf olduğu için size kısıtlı bir modda cevap verebiliyorum."
-        if "pazarlama" in t or "stok" in t:
-            return "Veritabanına erişebilirim ama analiz yeteneğim şu an kısıtlı. Lütfen bağlantımı kontrol edin."
-        return "Üzgünüm Alpay Bey, şu an zekam bulutlara (veya ajanınıza) erişemediği için bu isteğinizi yerine getiremiyorum."
+        return "Üzgünüm Alpay Bey, şu an zekam bulutlara (Gemini) veya yerel ajanınıza (Ollama) erişemediği için bu isteğinizi yerine getiremiyorum. Lütfen Ajanınızı (agent.py) kontrol edin."
 
     async def process(self, text: str, db: Session):
         """

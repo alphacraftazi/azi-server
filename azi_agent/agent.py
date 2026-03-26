@@ -111,16 +111,23 @@ async def connect_and_listen():
                         result = execute_local_tool(raw_data)
                         await websocket.send(result)
                     
-        except websockets.exceptions.ConnectionClosed:
+        except websockets.exceptions.ConnectionClosed as e:
+            print(f"📡 Bağlantı Kapandı: {e}. 5 saniye sonra tekrar denenecek...")
             await asyncio.sleep(5)
         except Exception as e:
-            print(f"❌ Hata: {e}")
+            print(f"❌ Bağlantı Hatası: {e}")
+            if "404" in str(e):
+                print("⚠️ UYARI: URL bulunamadı. Lütfen Render'daki uygulama adınızı kontrol edin.")
             await asyncio.sleep(5)
 
 if __name__ == "__main__":
     print("="*60)
     print("🤖 AZI EDGE AGENT (Yerel Zeka Motoru) BAŞLATILDI")
+    print(f"Hedef Sunucu: {URI}")
     print("Mod: Yerel (Ollama) + Uzaktan Kontrol")
     print("="*60)
-    asyncio.run(connect_and_listen())
+    try:
+        asyncio.run(connect_and_listen())
+    except KeyboardInterrupt:
+        print("\nAjan kapatılıyor...")
 

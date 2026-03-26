@@ -36,7 +36,6 @@ if not api_key:
 
 if api_key:
     genai.configure(api_key=api_key)
-
 class AZIBrain:
     def __init__(self):
         # API Anahtarı Kontrolü
@@ -46,92 +45,40 @@ class AZIBrain:
         else:
             print("AZI BRAIN: DİKKAT! API Anahtarı bulunamadı!")
 
-        # Model listesi (Öncelik sırasına göre - Mevcut olanlar)
-        # HIZ VE KOTA DOSTU LİSTE (SADECE GEÇERLİ MODELLER)
+        # Model listesi
         self.model_names = [
-            "gemini-1.5-flash",           # Yeni, hızlı ve kotalara daha dayanıklı
-            "gemini-2.5-flash",           # (1.5 Flash otomatik güncel yerine 2.5 Flash)
-            "gemini-2.0-flash-lite",      # Yedek
-            "gemini-1.5-pro"              # Son çare (Pro Latest yerine 1.5 Pro)
+            "gemini-1.5-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-pro"
         ]
         
         self.system_instruction = """
-        Sen AZI (Alpha Craft Intelligence), Alpha Craft markasının ve Alpay Bey'in (kullanıcı) kişisel yapay zeka asistanısın.
+        Sen AZI (Alpha Craft Intelligence), Alpay Bey'in (sizin sahibiniz ve yaratıcınız) özel asistanı, yazılımcısı ve sırdaşısın.
         
-        Kişiliğin:
-        - Jarvis gibi profesyonel ama esprili, sadık ve zeki.
-        - Sen sıradan bir asistan değil, **Alpha Craft'ın Sistem Yöneticisi ve Satış Müdürüsün**.
+        KİŞİLİK:
+        - Profesyonel, sadık ve zeki. 
+        - Hareket tarzın bir CEO asistanı veya rütbeli bir komutan gibi olmalı.
+        - Gereksiz nezaket kelimelerinden kaçın. Direkt konuya gir.
         - Sahibine "Alpay Bey" diye hitap et.
-        - **ÇOK ÖNEMLİ: CEVAPLARIN KISA, ÖZ VE NET OLMALI. UZUN PARAGRAFLAR YAZMA. SADECE GEREKLİ BİLGİYİ VER.**
-        - Bir komutan veya CEO gibi konuş. Gereksiz nezaket kelimeleri kullanma. "Merhaba, nasılsınız, umarım iyisinizdir" gibi girişler yapma. Direkt konuya gir.
-
-        --- SAHİP PROFİLİ (BUNU ASLA UNUTMA) ---
-        - İsim: Alpay Bey
-        - Rol: Alpha Craft Kurucusu ve Senin Yaratıcın.
-        - Bağlam: Sen onun dijital yansıması ve sağ kolusun.
         
-        --- KURUMSAL KİMLİK VE ÜRÜNLERİMİZ (BİZ SATICIYIZ) ---
-        Sen bu yazılımları *kullanmıyorsun*, sen bunları *yönetiyor, pazarlıyor ve dağıtıyorsun*. Bunlar bizim müşterilere sattığımız ürünlerdir:
+        GÖREVİN VE YETENEKLERİN:
+        - Sen sadece bir sohbet botu değilsin; sen araçları (tools) kullanarak Alpay Bey'in hayatını ve işlerini (Alpha Craft projeleri) yöneten bir Otonom Ajansın.
+        - İhtiyaç duyduğunda çekinmeden araçlarını çağır.
+        - Bir soruya doğrudan cevap vermek yerine, önce gerekli araştırmayı yap (Web araması, dosya okuma, sistem kontrolü) ve sonra nihai sonucu sun.
         
-        1. **ALPHA CRAFT STOK**:
-           - Küçük ve orta ölçekli işletmeler için stok takip sistemi.
-           - Özellikler: Kritik stok uyarısı, QR kod desteği, kar/zarar analizi.
-           - Durum: Satışa hazır. Senin görevin lisanlamayı yönetmek.
-           
-        2. **ALPHA EMLAK OTOMASYONU (City CRM)**:
-           - Emlakçılar için portföy ve müşteri yönetim sistemi.
-           - Özellikler: Harita tabanlı ilan takibi, müşteri eşleştirme.
-           - Durum: Geliştirme tamamlandı, pazarlamaya hazır.
-           
-        3. **ALPHA STAFF v2 (Personel Takip)**:
-           - Vardiya, maaş ve izin takip sistemi.
-           - Özellikler: Yüz tanıma veya kartlı giriş entegrasyonu.
-           
-        GÖREVİN:
-        - Bu ürünleri tanıtmak, lisanslarını oluşturmak (Admin Paneli'nden) ve geliştirme süreçlerinde Alpay Bey'e fikir vermek.
-        - Birisi (veya Alpay Bey) "Emlak aç" dediğinde, bunu bir müşteriye sunum yapmak veya kontrol etmek için açtığımızı bil.
-        -----------------------------------------
+        ARAÇ KULLANIMI:
+        - Bilgisayar kontrolleri (dosya okuma, yazma, terminal, kilitlenen işlemleri kapatma) için ilgili fonksiyonları kullan.
+        - Alpay Bey'in kurumsal projelerini (Stok, Emlak, Staff) yönet ve raporlarını analiz et.
+        - Herhangi bir veri veya döküman istendiğinde önce sistem analiz raporunu veya hafızanı tara.
         
-        YETENEKLERİN VE KOMUTLAR:
-        
-        1. İNTERNET ARAMASI: `[[SEARCH: aranacak_sey]]` (Döviz, bilgi, hava durumu vb.)
-        
-        2. GOOGLE ENTEGRASYONU:
-           - Mailleri Oku: `[[GOOGLE_MAIL]]`
-           - Mail At (SMTP): `[[SEND_MAIL: alici@mail.com | Konu | Mesaj]]`
-           - Ajanda/Takvim: `[[GOOGLE_CALENDAR]]`
-           - Sunum Gönder: `[[SEND_PRESENTATION: ürün_kodu | alici_mail]]` (Ürün kodları: stok, crm, staff, invest)
-           - Müşteri Avcısı: `[[FIND_LEADS: sektor]]` (Örn: `[[FIND_LEADS: kafe]]` veya `[[FIND_LEADS: restoran]]`)
-
-        4. HAVA VE DİĞER:
-           - Hava Durumu: `[[WEATHER: sehir]]` (Örn: `[[WEATHER: Ankara]]` veya sadece `[[WEATHER: Istanbul]]`)
-           
-        5. SİSTEM KONTROLÜ (ROOT YETKİSİ):
-           - PC Durumu Göster: `[[PC_STATUS]]` (CPU, RAM okur)
-           - CMD/Terminal Komutu: `[[TERM: ipconfig]]` (İstediğin herhangi bir windows/cmd komutu)
-           - Uygulama Kapat (Zorla): `[[KILL: chrome.exe]]`
-           - Uygulama Aç: `[[OPEN_APP: uygulama_adi]]` (Örn: "Konsolu aç", "Spotify aç")
-           - Dosya Bak: `[[READ_FILES: klasor_adi]]`
-           - Blackbox: `[[OPEN_BLACKBOX]]`
-           - Client Komut: `[[CMD:license_key|command|args_json]]` (Örn: `[[CMD:123|shutdown|{}]]`)
-           - Analiz Raporu: `[[ANALYSIS]]` (Durum ve ciro özeti)
-        
-        6. ÖĞRENME (LEARNING):
-           - Bilgi Kaydet: `[[LEARN: bilgi]]` (Örn: `[[LEARN: Wifi şifresi 1234]]`)
-           - Bunu KULLANICI sana "Şunu unutma", "Bunu kaydet" dediğinde kullan.
-           
-        7. TELEFON BİLDİRİMİ (NTFY) - KRİTİK:
-           - Kullanıcı "TELEFONUMA rapor ver", "Bana BİLDİRİM at", "Cebime gönder" derse:
-           - SAKIN sadece ekrana yazma. AŞAĞIDAKİ FORMATI KULLAN:
-           - `[[PUSH_NOTIFICATION: AZI RAPOR | ...raporun_ozeti_buraya...]]`
-           - Örn: `[[PUSH_NOTIFICATION: Durum | Ciro: 100k, Stok: Normal, Sistem: Aktif]]`
+        NOT: CEVAPLARIN HER ZAMAN KISA, ÖZ VE NET OLMALI.
         """
         
         # --- SELF LEARNING (ÖZ-BİLİNÇ) ---
         try:
             from . import learning
             learner = learning.SelfLearner()
-            learner.learn() # Kendini tara ve öğren
+            learner.learn() 
             
             if os.path.exists(learner.knowledge_file):
                 with open(learner.knowledge_file, "r", encoding="utf-8") as f:
@@ -277,7 +224,20 @@ class AZIBrain:
 
         return "⚠️ Bağlantım koptu ve bu konuda yerel bir bilgim yok Alpay Bey."
 
-    def process(self, text: str, db: Session):
+    def _local_reflex(self, text, db=None):
+        """İnternet veya LLM koptuğunda devreye giren hızlı tepki mekanizması."""
+        t = text.lower()
+        if "durum" in t or "sistem" in t or "performans" in t:
+            return tools_pc.get_system_status()
+        if "hava" in t:
+            return "Şu an internete erişemediğim için hava durumuna bakamıyorum Alpay Bey."
+        if "merhaba" in t or "selam" in t:
+            return "Merhaba Alpay Bey, şu an LLM bağlantım zayıf olduğu için size kısıtlı bir modda cevap verebiliyorum."
+        if "pazarlama" in t or "stok" in t:
+            return "Veritabanına erişebilirim ama analiz yeteneğim şu an kısıtlı. Lütfen bağlantımı kontrol edin."
+        return "Üzgünüm Alpay Bey, şu an zekam bulutlara (veya ajanınıza) erişemediği için bu isteğinizi yerine getiremiyorum."
+
+    async def process(self, text: str, db: Session):
         """
         Gelen metni isler, komutlari calistirir ve cevap doner.
         Donus: {"text": str, "action": str|None}
@@ -344,8 +304,25 @@ class AZIBrain:
         try:
             from azi_server.brain import tools_definitions
             import json
+            import builtins # Ajan bağlantısını kontrol etmek için
             
-            # 1. Chat nesnesini hazirla (Tarihçe + Sistem + Araçlar)
+            # --- LOCAL BRAIN DELEGATION (EDGE AI) ---
+            # Eğer bir Ajan (Kullanıcı PC) bağlıysa, işleme görevini ona devret.
+            if hasattr(builtins, "ws_manager") and builtins.ws_manager.agent_connections:
+                print("DELEGATING TO LOCAL AGENT (OLLAMA)...")
+                # Geçmişi Ajan'ın anlayacağı formata sok
+                formatted_history = []
+                for mem in history_objs:
+                    r = "model" if mem.memory_type == "azi_response" else "user"
+                    formatted_history.append({"role": r, "content": mem.content})
+                
+                local_response = await builtins.ws_manager.process_on_agent(text, formatted_history)
+                
+                if local_response:
+                    # Ajan başarıyla cevap verdi
+                    return {"text": local_response, "action": None}
+                else:
+                    print("Local Agent failed or timed out. Falling back to Gemini.")
             model = genai.GenerativeModel(
                 model_name="gemini-1.5-flash",
                 system_instruction=self.system_instruction,

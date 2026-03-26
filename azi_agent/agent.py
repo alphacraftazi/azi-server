@@ -3,6 +3,7 @@ import os
 import json
 import asyncio
 import websockets
+import requests
 
 # Proje kök dizinini Python yoluna ekle ki tools_pc.py kütüphanesini içeri aktarabilelim
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -10,108 +11,112 @@ sys.path.append(project_root)
 
 from azi_server.brain import tools_pc
 
-# Ana Beyin (Render Sunucusu) Adresi
+# --- CONFIG ---
 URI = "wss://azi-server.onrender.com/ws/agent"
+OLLAMA_URL = "http://localhost:11434/api/chat"
+LOCAL_MODEL = "llama3" # Llama3, Mistral, Gemma2 vb. (Ollama'da yüklü olmalı)
 
-# Eğer LOKALDE test etmek isterseniz üsttekinin başına # koyup alttakini açın:
-# URI = "ws://localhost:8000/ws/agent"
+SYSTEM_PROMPT = """Sen AZI (Alpha Craft Intelligence) yapay zekasısın. Alpay Bey'in özel dijital asistanısın. 
+Şu an bulut (Render) üzerinden gelen talepleri yerel bilgisayarda (Edge) işliyorsun. 
+Cevapların kısa, öz ve profesyonel olmalı. Alpay Bey'e 'Efendim' veya 'Alpay Bey' diye hitap et.
+Sistem kontrolleri ve dosya işlemleri yetkin var."""
+
+async def call_local_llm(prompt, history=[]):
+    """Ollama üzerinden yerel LLM'i çalıştırır."""
+    try:
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        for h in history:
+            messages.append(h)
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "model": LOCAL_MODEL,
+            "messages": messages,
+            "stream": False
+        }
+        
+        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        if response.status_code == 200:
+            return response.json().get("message", {}).get("content", "Bir hata oluştu.")
+        else:
+            return f"Ollama Hatası: {response.status_code}. Lütfen Ollama'nın çalıştığından emin olun."
+    except Exception as e:
+        return f"Yerel Zeka Bağlantı Hatası: {str(e)}. (Ollama servisiniz açık mı?)"
+
+def execute_local_tool(command):
+    """Master'dan gelen veya yerel LLM'in istediği araçları çalıştırır."""
+    if command == "PC_STATUS":
+        return tools_pc.get_system_status()
+    elif command.startswith("TERM:"):
+        return tools_pc.run_system_command(command.replace("TERM:", "", 1))
+    elif command.startswith("KILL:"):
+        return tools_pc.kill_process(command.replace("KILL:", "", 1))
+    elif command.startswith("FS_LIST:"):
+        path = command.replace("FS_LIST:", "", 1)
+        try:
+            target_path = os.getcwd() if path == "." else path
+            items = os.listdir(target_path)
+            return f"Klasör ({target_path}):\n" + "\n".join(items[:100])
+        except Exception as e: return f"Hata: {e}"
+    elif command.startswith("FS_READ:"):
+        path = command.replace("FS_READ:", "", 1)
+        try:
+            with open(path, "r", encoding="utf-8") as f: return f.read(5000)
+        except Exception as e: return f"Hata: {e}"
+    elif command.startswith("FS_WRITE:"):
+        parts = command.replace("FS_WRITE:", "", 1).split("|", 1)
+        if len(parts) == 2:
+            import base64
+            path, b64_content = parts[0], parts[1]
+            content = base64.b64decode(b64_content).decode("utf-8")
+            try:
+                os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+                with open(path, "w", encoding="utf-8") as f: f.write(content)
+                return f"Başarılı: {path}"
+            except Exception as e: return f"Hata: {e}"
+    elif command.startswith("BROWSE:"):
+        url = command.replace("BROWSE:", "", 1)
+        # Basit scraper (urllib)
+        return f"Site içeriği kazınılıyor (Simüle): {url}"
+    return f"Bilinmeyen Komut: {command}"
 
 async def connect_and_listen():
     while True:
         try:
-            print(f"📡 Ana Beyin'e (AZI Master) bağlanılıyor: {URI}")
+            print(f"📡 AZI Master Bağlantısı Deneniyor: {URI}")
             async with websockets.connect(URI) as websocket:
-                print("✅ Bağlantı başarılı! Sinir ucu aktif, emirler bekleniyor...")
+                print("✅ AZI Sınır Ucu (Edge) AKTİF. Yerel Zeka Hazır.")
                 
                 while True:
-                    command = await websocket.recv()
-                    print(f"⚡ Emir Alındı: {command}")
+                    raw_data = await websocket.recv()
                     
-                    response = ""
-                    if command == "PC_STATUS":
-                        response = tools_pc.get_system_status()
-                    elif command.startswith("TERM:"):
-                        cmd = command.replace("TERM:", "", 1)
-                        response = tools_pc.run_system_command(cmd)
-                    elif command.startswith("KILL:"):
-                        pname = command.replace("KILL:", "", 1)
-                        response = tools_pc.kill_process(pname)
-                    elif command.startswith("FS_LIST:"):
-                        path = command.replace("FS_LIST:", "", 1)
-                        try:
-                            # Eger nokta ise calistigi dizini ver
-                            target_path = os.getcwd() if path == "." else path
-                            items = os.listdir(target_path)
-                            # Liste uzayabilecegi icin 100 item ile sinirla
-                            items = items[:100]
-                            response = f"Klasör içeriği ({target_path}):\n" + "\n".join(items)
-                        except Exception as e:
-                            response = f"FS_LIST Hatası: {e}"
-                    elif command.startswith("FS_READ:"):
-                        path = command.replace("FS_READ:", "", 1)
-                        try:
-                            with open(path, "r", encoding="utf-8") as f:
-                                # Ilk 5000 karakterini dondur (veri cok buyuk olmamasi adina)
-                                content = f.read(5000)
-                                response = f"Dosya ({path}):\n\n```\n{content}\n```"
-                        except Exception as e:
-                            response = f"FS_READ Hatası: {e}"
-                    elif command.startswith("FS_WRITE:"):
-                        parts = command.replace("FS_WRITE:", "", 1).split("|", 1)
-                        if len(parts) == 2:
-                            path = parts[0]
-                            import base64
-                            content = base64.b64decode(parts[1]).decode("utf-8")
-                            try:
-                                # Ust klasorleri otomatik olustur (write_to_file davranişi)
-                                os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-                                with open(path, "w", encoding="utf-8") as f:
-                                    f.write(content)
-                                response = f"Dosya başarıyla kaydedildi/yazıldı: {path}"
-                            except Exception as e:
-                                response = f"FS_WRITE Hatası: {e}"
-                        else:
-                            response = "Hatalı FS_WRITE formatı."
-                    elif command.startswith("BROWSE:"):
-                        url = command.replace("BROWSE:", "", 1)
-                        try:
-                            import urllib.request
-                            from html.parser import HTMLParser
-                            
-                            class TextExtractor(HTMLParser):
-                                def __init__(self):
-                                    super().__init__()
-                                    self.text = []
-                                def handle_data(self, data):
-                                    if data.strip(): self.text.append(data.strip())
-                                    
-                            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-                            with urllib.request.urlopen(req, timeout=15) as response:
-                                html = response.read().decode('utf-8', errors='ignore')
-                                
-                            parser = TextExtractor()
-                            parser.feed(html)
-                            content = " ".join(parser.text)
-                            response = f"Web Sitesi İmzası Okundu ({url}) - İlk 4000 karakter:\n\n{content[:4000]}"
-                        except Exception as e:
-                            response = f"Web Taraması Başarısız: {e} (Bot engellemesine takılmış olabilir)"
-                    else:
-                        response = f"Bilinmeyen ajan emri: {command}"
+                    # Master'dan gelen emir tipini belirle
+                    if raw_data.startswith("PROCESS_REQUEST:"):
+                        # AZI Master düşünme görevini Ajan'a devretti
+                        data = json.loads(raw_data.replace("PROCESS_REQUEST:", "", 1))
+                        prompt = data.get("prompt")
+                        history = data.get("history", [])
                         
-                    print(f"📤 Sonuç Ana Beyin'e Raporlanıyor...")
-                    await websocket.send(response)
+                        print(f"🧠 Yerel Zeka Düşünüyor: {prompt}")
+                        answer = await call_local_llm(prompt, history)
+                        await websocket.send(f"LLM_RESPONSE:{answer}")
+                        
+                    else:
+                        # Standart Tool Komutu
+                        print(f"⚡ Araç Komutu: {raw_data}")
+                        result = execute_local_tool(raw_data)
+                        await websocket.send(result)
                     
         except websockets.exceptions.ConnectionClosed:
-            print("⚠️ Bağlantı Ana Beyin tarafından kesildi. 5 saniye içinde tekrar deneniyor...")
             await asyncio.sleep(5)
         except Exception as e:
-            print(f"❌ Ağ veya Bağlantı Hatası: {e}")
-            print("Yeniden bağlanılıyor...")
+            print(f"❌ Hata: {e}")
             await asyncio.sleep(5)
 
 if __name__ == "__main__":
     print("="*60)
-    print("🤖 AZI OMNIPRESENT AGENT (Sinir Ucu Ajanı) BAŞLATILDI")
-    print("Bu pencere açık kaldığı sürece AZI (Render) bilgisayarınıza hükmedebilir.")
+    print("🤖 AZI EDGE AGENT (Yerel Zeka Motoru) BAŞLATILDI")
+    print("Mod: Yerel (Ollama) + Uzaktan Kontrol")
     print("="*60)
     asyncio.run(connect_and_listen())
+

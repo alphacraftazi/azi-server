@@ -99,10 +99,33 @@ def push_notification_to_mobile(title: str, message: str) -> str:
     except Exception as e:
         return f"Bildirim gönderilemedi: {e}"
 
+def list_directory(path: str) -> str:
+    """Kullanıcının bilgisayarındaki bir klasörün içindeki dosyaları ve alt klasörleri listeler.
+    Args:
+        path: Görüntülenecek klasörün tam adresi (Örn: 'C:\\Users\\alpay\\Desktop' veya sadece '.' mevcut dizin için).
+    """
+    return "COMMAND_QUEUED_FOR_AGENT"
+
+def view_file(path: str) -> str:
+    """Kullanıcının bilgisayarındaki bir metin/kod dosyasının tüm içeriğini okur ve AZI'ye getirir.
+    Args:
+        path: Okunacak dosyanın tam adresi (Örn: 'main.py' veya 'C:\\test.txt').
+    """
+    return "COMMAND_QUEUED_FOR_AGENT"
+
+def write_to_file(path: str, content: str) -> str:
+    """Kullanıcının bilgisayarında yeni bir dosya oluşturur veya var olan kod dosyasını tamamen yenisiyle değiştirir (Kod yazma/düzenleme).
+    Args:
+        path: Yazılacak dosyanın tam adresi.
+        content: Dosyaya yazılacak olan tamamlanmış kodlar veya metin (eksiksiz olmalıdır).
+    """
+    return "COMMAND_QUEUED_FOR_AGENT"
+
 # Tüm agentik araçların listesi
 azi_tool_list = [
     search_web, get_weather, get_unread_emails, get_calendar_events,
     get_system_status, run_system_command_terminal, kill_process,
     open_application, send_email_smtp, find_customer_leads,
-    generate_system_analysis_report, push_notification_to_mobile
+    generate_system_analysis_report, push_notification_to_mobile,
+    list_directory, view_file, write_to_file
 ]

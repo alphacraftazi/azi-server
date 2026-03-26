@@ -400,6 +400,14 @@ class AZIBrain:
                         elif func_name == "open_application":
                             app_name = args.get('app_name', '')
                             action = f"agent_command:OPEN_APP:{app_name}"
+                        elif func_name == "list_directory":
+                            action = f"agent_command:FS_LIST:{args.get('path')}"
+                        elif func_name == "view_file":
+                            action = f"agent_command:FS_READ:{args.get('path')}"
+                        elif func_name == "write_to_file":
+                            import base64
+                            b64_content = base64.b64encode(args.get('content', '').encode()).decode('utf-8')
+                            action = f"agent_command:FS_WRITE:{args.get('path')}|{b64_content}"
                             
                         system_log = f"Ajan Emri Gönderildi: {func_name}"
                         # Ajan asenkron oldugu icin LLM e yalandan sonuc donuyoruz ki cevap uretmeyi bitirsin

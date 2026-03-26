@@ -207,8 +207,10 @@ class ConnectionManager:
             return None
             
         try:
-            # Ajan'ın cevabını 30 saniye bekle
-            response = await asyncio.wait_for(self.pending_responses[request_id], timeout=30.0)
+            # Ajan'ın cevabını 60 saniye bekle (Ollama büyük modellerde yavaş olabilir)
+            print(f"Waiting for Agent response (ID: {request_id})...")
+            response = await asyncio.wait_for(self.pending_responses[request_id], timeout=60.0)
+            print(f"Response received from Agent (ID: {request_id})")
             return response
         except asyncio.TimeoutError:
             print("Agent Processing Timeout")

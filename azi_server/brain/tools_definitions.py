@@ -121,11 +121,41 @@ def write_to_file(path: str, content: str) -> str:
     """
     return "COMMAND_QUEUED_FOR_AGENT"
 
+def search_past_memory(keyword: str) -> str:
+    """Geçmişteki eski konuşmaları, hafızayı veya eski verileri hatırlamak/bulmak için AZI'nin veritabanında derinlemesine arama yapar (Uzun Süreli Hafıza - RAG).
+    Args:
+        keyword: Veritabanında (eski tarihlerde) aranacak anahtar kelime veya içerik.
+    """
+    try:
+        from azi_server import database, models
+        db = database.SessionLocal()
+        results = db.query(models.AIMemory).filter(models.AIMemory.content.ilike(f"%{keyword}%")).order_by(models.AIMemory.id.desc()).limit(15).all()
+        db.close()
+        
+        if not results: return "Bu konuyla ilgili geçmiş hafızamda hiçbir kayıt bulamadım."
+        
+        memories = []
+        for r in results:
+            role = "AZI" if r.memory_type == "azi_response" else "Kullanıcı"
+            time_str = r.timestamp.strftime("%Y-%m-%d %H:%M") if r.timestamp else "Geçmiş"
+            memories.append(f"[{time_str}] {role}: {r.content[:300]}...")
+        return "Geçmiş Hafıza Kayıtları:\n" + "\n---\n".join(memories)
+    except Exception as e:
+        return f"Hafıza erişim hatası: {e}"
+
+def browse_website_via_agent(url: str) -> str:
+    """Kullanıcının bilgisayarındaki Ajan (Sinir Ucu) üzerinden bir web sitesine gizlice bağlanır, sayfa kodlarını okur ve metinleri kazıyıp getirir (Web Scraping / Tarayıcı Botu). Link verilirse mutlaka kullanılır.
+    Args:
+        url: Taranacak web sitesinin tam linki (https://...).
+    """
+    return "COMMAND_QUEUED_FOR_AGENT"
+
 # Tüm agentik araçların listesi
 azi_tool_list = [
     search_web, get_weather, get_unread_emails, get_calendar_events,
     get_system_status, run_system_command_terminal, kill_process,
     open_application, send_email_smtp, find_customer_leads,
     generate_system_analysis_report, push_notification_to_mobile,
-    list_directory, view_file, write_to_file
+    list_directory, view_file, write_to_file,
+    search_past_memory, browse_website_via_agent
 ]

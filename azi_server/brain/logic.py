@@ -408,6 +408,8 @@ class AZIBrain:
                             import base64
                             b64_content = base64.b64encode(args.get('content', '').encode()).decode('utf-8')
                             action = f"agent_command:FS_WRITE:{args.get('path')}|{b64_content}"
+                        elif func_name == "browse_website_via_agent":
+                            action = f"agent_command:BROWSE:{args.get('url')}"
                             
                         system_log = f"Ajan Emri Gönderildi: {func_name}"
                         # Ajan asenkron oldugu icin LLM e yalandan sonuc donuyoruz ki cevap uretmeyi bitirsin

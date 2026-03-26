@@ -72,6 +72,29 @@ async def connect_and_listen():
                                 response = f"FS_WRITE Hatası: {e}"
                         else:
                             response = "Hatalı FS_WRITE formatı."
+                    elif command.startswith("BROWSE:"):
+                        url = command.replace("BROWSE:", "", 1)
+                        try:
+                            import urllib.request
+                            from html.parser import HTMLParser
+                            
+                            class TextExtractor(HTMLParser):
+                                def __init__(self):
+                                    super().__init__()
+                                    self.text = []
+                                def handle_data(self, data):
+                                    if data.strip(): self.text.append(data.strip())
+                                    
+                            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+                            with urllib.request.urlopen(req, timeout=15) as response:
+                                html = response.read().decode('utf-8', errors='ignore')
+                                
+                            parser = TextExtractor()
+                            parser.feed(html)
+                            content = " ".join(parser.text)
+                            response = f"Web Sitesi İmzası Okundu ({url}) - İlk 4000 karakter:\n\n{content[:4000]}"
+                        except Exception as e:
+                            response = f"Web Taraması Başarısız: {e} (Bot engellemesine takılmış olabilir)"
                     else:
                         response = f"Bilinmeyen ajan emri: {command}"
                         

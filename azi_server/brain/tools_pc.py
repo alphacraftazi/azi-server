@@ -3,6 +3,7 @@ import subprocess
 import platform
 import glob
 from pathlib import Path
+import psutil
 
 def get_user_folder(folder_name):
     """Kullanıcının özel klasörlerini bulur (Desktop, Documents vb.)"""
@@ -123,4 +124,51 @@ def open_application(app_name: str):
         search_url = f"https://www.google.com/search?q={app_name}"
         webbrowser.open(search_url)
         return f"'{app_name}' bilgisayarda bulunamadı, Google'da aranıyor..."
+
+def run_system_command(cmd: str):
+    """CMD komutlarını çalıştırır ve çıktısını alır."""
+    try:
+        result = subprocess.run(cmd, shell=True, text=True, capture_output=True, timeout=15)
+        output = result.stdout.strip()
+        error = result.stderr.strip()
+        
+        if error and not output:
+             return f"⚠️ Hata: {error}"
+             
+        if len(output) > 1000:
+            output = output[:1000] + "\n... (Çıktı çok uzundu, kesildi)"
+            
+        return f"✅ Komut Çıktısı:\n{output}" if output else "✅ Komut başarıyla çalıştı (Çıktı yok)."
+    except subprocess.TimeoutExpired:
+        return "⚠️ Hata: Komut çok uzun sürdü ve zorla kapatıldı (Timeout)."
+    except Exception as e:
+         return f"⚠️ Komut Hatası: {str(e)}"
+
+def get_system_status():
+    """Bilgisayarın CPU, RAM, Disk durumlarını okur."""
+    try:
+        cpu = psutil.cpu_percent(interval=1)
+        ram = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        return (f"🖥️ PC DURUMU:\n"
+                f"- İşlemci (CPU): %{cpu}\n"
+                f"- Bellek (RAM): %{ram.percent} ({ram.used/(1024**3):.1f}GB / {ram.total/(1024**3):.1f}GB)\n"
+                f"- Disk (C:): %{disk.percent} Dolu")
+    except Exception as e:
+        return f"Sistem durumu okunamadı: {e}"
+
+def kill_process(process_name: str):
+    """Verilen isme sahip işlemi/uygulamayı kapatır."""
+    try:
+        killed = 0
+        for proc in psutil.process_iter(['name']):
+            if process_name.lower() in proc.info['name'].lower():
+                proc.kill()
+                killed += 1
+        if killed > 0:
+            return f"✅ '{process_name}' isimli {killed} adet işlem kapatıldı."
+        else:
+            return f"❌ '{process_name}' isimli açık bir işlem bulunamadı."
+    except Exception as e:
+        return f"İşlem kapatma hatası: {e}"
 

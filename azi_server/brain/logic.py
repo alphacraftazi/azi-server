@@ -106,7 +106,10 @@ class AZIBrain:
         4. HAVA VE DİĞER:
            - Hava Durumu: `[[WEATHER: sehir]]` (Örn: `[[WEATHER: Ankara]]` veya sadece `[[WEATHER: Istanbul]]`)
            
-        5. SİSTEM KONTROLÜ:
+        5. SİSTEM KONTROLÜ (ROOT YETKİSİ):
+           - PC Durumu Göster: `[[PC_STATUS]]` (CPU, RAM okur)
+           - CMD/Terminal Komutu: `[[TERM: ipconfig]]` (İstediğin herhangi bir windows/cmd komutu)
+           - Uygulama Kapat (Zorla): `[[KILL: chrome.exe]]`
            - Uygulama Aç: `[[OPEN_APP: uygulama_adi]]` (Örn: "Konsolu aç", "Spotify aç")
            - Dosya Bak: `[[READ_FILES: klasor_adi]]`
            - Blackbox: `[[OPEN_BLACKBOX]]`
@@ -451,6 +454,30 @@ class AZIBrain:
                 tool_result = tools_pc.open_application(app_name)
                 system_log = f"Uygulama: {tool_result}"
                 response_text = raw_text[:raw_text.find("[[OPEN_APP:")].strip() + f"\n({tool_result})"
+
+            elif "[[PC_STATUS]]" in raw_text:
+                system_log = "PC Durumu Kontrol Ediliyor..."
+                tool_result = tools_pc.get_system_status()
+                response_text = raw_text.replace("[[PC_STATUS]]", "").strip()
+                response_text += f"\n\n{tool_result}"
+                
+            elif "[[TERM:" in raw_text:
+                start = raw_text.find("[[TERM:") + len("[[TERM:")
+                end = raw_text.find("]]", start)
+                cmd = raw_text[start:end].strip()
+                
+                system_log = f"Terminal Komutu: {cmd}"
+                tool_result = tools_pc.run_system_command(cmd)
+                response_text = raw_text[:raw_text.find("[[TERM:")].strip() + f"\n\n{tool_result}"
+
+            elif "[[KILL:" in raw_text:
+                start = raw_text.find("[[KILL:") + len("[[KILL:")
+                end = raw_text.find("]]", start)
+                pname = raw_text[start:end].strip()
+                
+                system_log = f"İşlem Sonlandırılıyor: {pname}"
+                tool_result = tools_pc.kill_process(pname)
+                response_text = raw_text[:raw_text.find("[[KILL:")].strip() + f"\n\n{tool_result}"
 
             elif "[[READ_FILES:" in raw_text:
                 start = raw_text.find("[[READ_FILES:") + len("[[READ_FILES:")

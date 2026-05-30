@@ -1,4 +1,4 @@
-from google import genai
+import google.generativeai as genai
 import os
 import time
 from . import logic
@@ -6,7 +6,8 @@ from . import logic
 class SolutionArchitect:
     def __init__(self):
         api_key = os.getenv("GOOGLE_API_KEY")
-        self.client = genai.Client(api_key=api_key) if api_key else None
+        if api_key:
+            genai.configure(api_key=api_key)
         self.model_name = "gemini-2.0-flash"
 
     def generate_code(self, requirements: str, business_name: str) -> str:
@@ -36,10 +37,8 @@ class SolutionArchitect:
         retries = 3
         for attempt in range(retries):
             try:
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt
-                )
+                model = genai.GenerativeModel(self.model_name)
+                response = model.generate_content(prompt)
                 code = response.text
                 
                 # Temizlik (Markdown işaretlerini kaldır)

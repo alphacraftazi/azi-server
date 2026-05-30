@@ -4,7 +4,7 @@ import threading
 import time
 import os
 
-TELEMETRY_API = "http://127.0.0.1:8001/api/telemetry" # Localhost for now, update for prod
+TELEMETRY_API = "http://127.0.0.1:8001/api/telemetry"
 
 class TelemetryWorker:
     def __init__(self, license_key, app_name, data_dir, api_interface, server_url=None):

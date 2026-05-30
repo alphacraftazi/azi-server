@@ -193,17 +193,20 @@ class RealEstateApi:
         """Satışı Azi sunucusuna bildirir."""
         import requests
         try:
-            # Not: Gerçek bir lisans anahtarı mekanizması olmalı, şimdilik dummy gönderiyoruz.
+            license_key = "DEMO-KEY"
+            license_path = os.path.join(BASE_DIR, "license.key")
+            if os.path.exists(license_path):
+                with open(license_path, "r") as f:
+                    license_key = f.read().strip()
             payload = {
-                "license_key": "DEMO-KEY", 
+                "license_key": license_key,
                 "listing_no": str(listing_no),
                 "updates": {
                     "status": "Satıldı",
                     "notes": f"Satış Fiyatı: {actual_price}. Not: {notes}"
                 }
             }
-            # Localhost varsayıyoruz, prod için domain değişmeli
-            requests.post("http://localhost:8001/api/emlak/sale", json=payload, timeout=2)
+            requests.post(f"{self.server_url}/api/emlak/sale", json=payload, timeout=5)
             return True
         except Exception as e:
             print(f"Server Sync Error: {e}")
@@ -213,8 +216,7 @@ class RealEstateApi:
         """Azi sunucusundaki botu tetikler."""
         import requests
         try:
-            # Botu tetikle
-            response = requests.post("http://localhost:8001/api/emlak/run_scraper", timeout=600) # Uzun timeout (bot çalışması için)
+            response = requests.post(f"{self.server_url}/api/emlak/run_scraper", timeout=600)
             if response.status_code == 200:
                 return response.json()
             return {"success": False, "msg": f"Sunucu Hatası: {response.status_code}"}

@@ -164,10 +164,11 @@ class BuildFactory:
             # DETECT PUBLIC URL (NGROK / LAN)
             # ---------------------------------------------------------
             import builtins
-            server_url = getattr(builtins, "AZI_PUBLIC_URL", None)
-            
+            # Render ortamında sabit URL kullan
+            render_url = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("RENDER_SERVICE_URL")
+            server_url = render_url or getattr(builtins, "AZI_PUBLIC_URL", None)
+
             if not server_url:
-                # Fallback to LAN if not ready
                 import socket
                 try:
                     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -176,6 +177,10 @@ class BuildFactory:
                     s.close()
                 except:
                     server_url = "http://localhost:8001"
+
+            # Render URL'si biliniyorsa onu zorla kullan
+            if os.environ.get("RENDER"):
+                server_url = "https://azi-server.onrender.com"
             
             print(f"[{product_type}] Server URL ayarlanıyor: {server_url}")
             

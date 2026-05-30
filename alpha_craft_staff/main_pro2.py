@@ -94,8 +94,7 @@ def command_listener_loop(api_instance):
                     # Offline Mode: Sessizce devam et
                     pass
             
-            # Her 10 saniyede bir kontrol et (Normalde 60 olabilir ama test icin hizli)
-            current_sleep = 10 
+            current_sleep = 60
         except Exception as e:
             # print(f"Listener Error: {e}")
             current_sleep = 20 # Hata varsa bekle
@@ -183,8 +182,8 @@ class Api:
                         if key:
                             return key
             
-            print("DEBUG: config.json NOT FOUND. ACTIVATING BYPASS.")
-            return "DEV-BYPASS-ACTIVATED-2026"
+            print("DEBUG: config.json NOT FOUND.")
+            return None
         except Exception as e:
             print(f"Auto-License Check Error: {e}")
             return None

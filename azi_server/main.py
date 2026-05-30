@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Dict # Added for connection manager
 from azi_server import models, database
-from azi_server.brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather, lead_hunter # Added weather
+from azi_server.brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather # Added weather
 from azi_server.routers import city
 import asyncio
 import json
@@ -24,11 +24,11 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI(title="AZI: Alpha Craft Intelligence")
 
 @app.on_event("startup")
-async def startup_notify():
+async def startup_event():
     print("\n\n" + "="*50)
     print("AZI SERVER STARTING... SITE REQUESTS MODULE ACTIVE")
     print("="*50 + "\n\n")
-
+    
     # Notify Admin Mobile
     await notifier.send_async(
         title="AZI: İletişim Hattı Açık",
@@ -166,6 +166,58 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
         self.client_map: Dict[str, WebSocket] = {}
+        self.agent_connections: list[WebSocket] = []
+        self.pending_responses: Dict[str, asyncio.Future] = {}
+
+    async def connect_agent(self, websocket: WebSocket):
+        await websocket.accept()
+        self.agent_connections.append(websocket)
+        print("Omnipresent Agent connected.")
+
+    def disconnect_agent(self, websocket: WebSocket):
+        if websocket in self.agent_connections:
+            self.agent_connections.remove(websocket)
+            print("Omnipresent Agent disconnected.")
+
+    async def send_agent_command(self, command: str):
+        if not self.agent_connections:
+            return False
+        for agent in self.agent_connections:
+            try:
+                await agent.send_text(command)
+                return True
+            except Exception as e:
+                print(f"Agent WS Error: {e}")
+        return False
+
+    async def process_on_agent(self, prompt: str, history: list = []):
+        """Düşünme görevini yerel ajana (Edge PC) devreder."""
+        if not self.agent_connections:
+            return None
+        
+        request_id = str(datetime.datetime.now().timestamp())
+        self.pending_responses[request_id] = asyncio.get_event_loop().create_future()
+        
+        payload = {"prompt": prompt, "history": history}
+        # Ajan'a "Düşün" emri gönder
+        success = await self.send_agent_command(f"PROCESS_REQUEST:{json.dumps(payload)}")
+        
+        if not success:
+            del self.pending_responses[request_id]
+            return None
+            
+        try:
+            # Ajan'ın cevabını 60 saniye bekle (Ollama büyük modellerde yavaş olabilir)
+            print(f"Waiting for Agent response (ID: {request_id})...")
+            response = await asyncio.wait_for(self.pending_responses[request_id], timeout=60.0)
+            print(f"Response received from Agent (ID: {request_id})")
+            return response
+        except asyncio.TimeoutError:
+            print("Agent Processing Timeout")
+            return None
+        finally:
+            if request_id in self.pending_responses:
+                del self.pending_responses[request_id]
 
     async def connect(self, websocket: WebSocket, client_id: str = None):
         await websocket.accept()
@@ -267,23 +319,32 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
             data = await websocket.receive_text()
             
             # Logic Katmanına Gönder
-            result = logic.brain_service.process(data, db)
+            result = await logic.brain_service.process(data, db)
             
             # --- ACTION HANDLER (COMMAND QUEUE) ---
             act = result.get("action")
-            if act and act.startswith("client_command:"):
-                try:
-                    # Format: client_command:LICENSE:CMD:ARGS_JSON
-                    parts = act.split(":", 3)
-                    if len(parts) >= 4:
-                        l_key = parts[1]
-                        cmd_name = parts[2]
-                        args_val = json.loads(parts[3])
-                        
-                        # Kuyruğa Ekle
-                        core_products.product_service.queue_command(db, l_key, cmd_name, args_val)
-                except Exception as e:
-                    print(f"Command Queue Error: {e}")
+            if act:
+                if act.startswith("agent_command:"):
+                    # Ana beyin ajan komutu verdi, yerel Ajan'a yolla
+                    cmd_to_agent = act.replace("agent_command:", "")
+                    success = await manager.send_agent_command(cmd_to_agent)
+                    if not success:
+                        result["text"] += "\n\n⚠️ UYARI: İşletim sistemi komutu gönderilemedi. Bilgisayarınızdaki AZI Ajanı (agent.py) şu an aktif değil veya buluta bağlı değil."
+
+                elif act.startswith("client_command:"):
+                    try:
+                        # Format: client_command:LICENSE:CMD:ARGS_JSON
+                        parts = act.split(":", 3)
+                        if len(parts) >= 4:
+                            l_key = parts[1]
+                            cmd_name = parts[2]
+                            args_val = json.loads(parts[3])
+                            
+                            # Kuyruğa Ekle
+                            from azi_server.brain import core_products
+                            core_products.product_service.queue_command(db, l_key, cmd_name, args_val)
+                    except Exception as e:
+                        print(f"Command Queue Error: {e}")
             
             # Cevabı Gönder
             response_payload = {
@@ -312,6 +373,38 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
         print(f"WebSocket Hatası: {e}")
         manager.disconnect(websocket)
 
+@app.websocket("/ws/agent")
+async def agent_websocket_endpoint(websocket: WebSocket):
+    """
+    Sadece kullanıcının fiziksel bilgisayarında çalışan Ajan buraya bağlanır.
+    Fiziksel donanımdan gelen yanıtları UI'a yayınlar.
+    """
+    await manager.connect_agent(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            
+            if data.startswith("LLM_RESPONSE:"):
+                # Ajan'dan gelen zeka cevabı
+                content = data.replace("LLM_RESPONSE:", "", 1)
+                # En son bekleyen talebi bul ve çöz (Basitlik için en sonuncuyu alıyoruz)
+                for req_id in list(manager.pending_responses.keys()):
+                    if not manager.pending_responses[req_id].done():
+                        manager.pending_responses[req_id].set_result(content)
+                        break
+            else:
+                # Ajan'dan gelen standart araç/log cevabı
+                await manager.broadcast_json({
+                    "type": "response",
+                    "message": f"🤖 **Ajan Raporu:**\n{data}",
+                    "timestamp": str(datetime.datetime.utcnow())
+                })
+    except WebSocketDisconnect:
+        manager.disconnect_agent(websocket)
+    except Exception as e:
+        print(f"Agent WS Handler Hatası: {e}")
+        manager.disconnect_agent(websocket)
+
 async def process_command(data: str):
     """
     Gelen komutu AZI'nin beynine gönderir.
@@ -319,7 +412,7 @@ async def process_command(data: str):
     db = database.SessionLocal()
     try:
         # logic.process artik bir dict donuyor: {"text":Str, "action":Str|None}
-        result = logic.brain_service.process(data, db)
+        result = await logic.brain_service.process(data, db)
         
         response_payload = {
             "type": "response",
@@ -393,7 +486,7 @@ async def delete_all_licenses(db: Session = Depends(get_db)):
 async def delete_all_licenses_alt(db: Session = Depends(get_db)):
     """(Alternatif) DELETE metodunu destekler."""
     print("DEBUG: Delete request received via DELETE")
-    return core_products.product_service.delete_all_businesses(db)
+    return products.product_service.delete_all_businesses(db)
 
 @app.get("/api/system/version")
 async def get_system_version():
@@ -496,7 +589,7 @@ class CommandReq(BaseModel):
 @app.post("/api/control/send")
 async def send_command_manual(req: CommandReq, db: Session = Depends(get_db)):
     """Manuel olarak komut gönderir."""
-    core_products.product_service.queue_command(db, req.license_key, req.command, req.args)
+    products.product_service.queue_command(db, req.license_key, req.command, req.args)
     return {"status": "queued", "target": req.license_key}
 
 # --- MOBILE ENTEGRASYON API ---
@@ -528,7 +621,7 @@ async def chat_voice(req: VoiceReq, db: Session = Depends(get_db)):
     })
 
     # 1. Logic İşleme
-    result = logic.brain_service.process(req.text, db)
+    result = await logic.brain_service.process(req.text, db)
     
     # 2. Voice Generation (Edge-TTS) - Natural Voice
     audio_url = None
@@ -668,16 +761,36 @@ class ChatReq(BaseModel):
 @app.get("/api/brain/stream")
 def get_brain_stream():
     """Frontend polls this to see if AZI wants to speak."""
-    brain = logic.brain_service
-    voice_queue = getattr(brain, "voice_queue", [])
-    if voice_queue:
-        thought = voice_queue.pop(0)
-        return {"speak": thought, "mood": getattr(brain, "mood", "neutral")}
+    if azi_brain.voice_queue:
+        thought = azi_brain.voice_queue.pop(0)
+        return {"speak": thought, "mood": azi_brain.mood}
     return {"speak": None}
 
 
 
 
+
+# --- WEBSITE MONITORING (NEW) ---
+import urllib.request
+import time
+
+@app.get("/api/monitor/website")
+async def monitor_website_status():
+    """Checks if alphacraftazi.com is online."""
+    url = "https://alphacraftazi.com"
+    try:
+        start = time.time()
+        # Blocking call but short timeout
+        code = urllib.request.urlopen(url, timeout=3).getcode()
+        duration = int((time.time() - start) * 1000)
+        
+        if code == 200:
+            return {"status": "online", "latency": duration}
+    except Exception as e:
+        print(f"Monitor Error: {e}")
+        pass
+        
+    return {"status": "offline", "latency": 0}
 
 # --- WEBSOCKET ENDPOINT (MUST BE BEFORE STATIC MOUNT) ---
 @app.websocket("/ws/{client_id}")
@@ -816,6 +929,9 @@ async def update_lead_status(req: LeadUpdateReq, db: Session = Depends(get_db)):
         db.commit()
         return {"status": "updated", "lead_id": lead.id, "new_status": lead.status}
     raise HTTPException(status_code=404, detail="Lead not found")
+    
+    raise HTTPException(status_code=404, detail="Lead not found")
+    
 
 
 from fastapi import BackgroundTasks

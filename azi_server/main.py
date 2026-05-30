@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Dict # Added for connection manager
 from azi_server import models, database
-from azi_server.brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather # Added weather
+from azi_server.brain import proactive, logic, analysis, voice, core_products, vision as brain_vision, weather, lead_hunter # Added weather
 from azi_server.routers import city
 import asyncio
 import json
@@ -24,11 +24,11 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI(title="AZI: Alpha Craft Intelligence")
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_notify():
     print("\n\n" + "="*50)
     print("AZI SERVER STARTING... SITE REQUESTS MODULE ACTIVE")
     print("="*50 + "\n\n")
-    
+
     # Notify Admin Mobile
     await notifier.send_async(
         title="AZI: İletişim Hattı Açık",
@@ -281,7 +281,7 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)
                         args_val = json.loads(parts[3])
                         
                         # Kuyruğa Ekle
-                        products.product_service.queue_command(db, l_key, cmd_name, args_val)
+                        core_products.product_service.queue_command(db, l_key, cmd_name, args_val)
                 except Exception as e:
                     print(f"Command Queue Error: {e}")
             
@@ -393,7 +393,7 @@ async def delete_all_licenses(db: Session = Depends(get_db)):
 async def delete_all_licenses_alt(db: Session = Depends(get_db)):
     """(Alternatif) DELETE metodunu destekler."""
     print("DEBUG: Delete request received via DELETE")
-    return products.product_service.delete_all_businesses(db)
+    return core_products.product_service.delete_all_businesses(db)
 
 @app.get("/api/system/version")
 async def get_system_version():
@@ -496,7 +496,7 @@ class CommandReq(BaseModel):
 @app.post("/api/control/send")
 async def send_command_manual(req: CommandReq, db: Session = Depends(get_db)):
     """Manuel olarak komut gönderir."""
-    products.product_service.queue_command(db, req.license_key, req.command, req.args)
+    core_products.product_service.queue_command(db, req.license_key, req.command, req.args)
     return {"status": "queued", "target": req.license_key}
 
 # --- MOBILE ENTEGRASYON API ---
@@ -668,36 +668,16 @@ class ChatReq(BaseModel):
 @app.get("/api/brain/stream")
 def get_brain_stream():
     """Frontend polls this to see if AZI wants to speak."""
-    if azi_brain.voice_queue:
-        thought = azi_brain.voice_queue.pop(0)
-        return {"speak": thought, "mood": azi_brain.mood}
+    brain = logic.brain_service
+    voice_queue = getattr(brain, "voice_queue", [])
+    if voice_queue:
+        thought = voice_queue.pop(0)
+        return {"speak": thought, "mood": getattr(brain, "mood", "neutral")}
     return {"speak": None}
 
 
 
 
-
-# --- WEBSITE MONITORING (NEW) ---
-import urllib.request
-import time
-
-@app.get("/api/monitor/website")
-async def monitor_website_status():
-    """Checks if alphacraftazi.com is online."""
-    url = "https://alphacraftazi.com"
-    try:
-        start = time.time()
-        # Blocking call but short timeout
-        code = urllib.request.urlopen(url, timeout=3).getcode()
-        duration = int((time.time() - start) * 1000)
-        
-        if code == 200:
-            return {"status": "online", "latency": duration}
-    except Exception as e:
-        print(f"Monitor Error: {e}")
-        pass
-        
-    return {"status": "offline", "latency": 0}
 
 # --- WEBSOCKET ENDPOINT (MUST BE BEFORE STATIC MOUNT) ---
 @app.websocket("/ws/{client_id}")
@@ -836,9 +816,6 @@ async def update_lead_status(req: LeadUpdateReq, db: Session = Depends(get_db)):
         db.commit()
         return {"status": "updated", "lead_id": lead.id, "new_status": lead.status}
     raise HTTPException(status_code=404, detail="Lead not found")
-    
-    raise HTTPException(status_code=404, detail="Lead not found")
-    
 
 
 from fastapi import BackgroundTasks

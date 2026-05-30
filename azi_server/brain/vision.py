@@ -1,16 +1,19 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types as genai_types
 from PIL import Image
 import io
 import base64
 import cv2
 import numpy as np
+import os
 from . import logic
 
 class VisionSystem:
     def __init__(self):
-        # KULLANICI İSTEĞİ ÜZERİNE GERİ ALINDI: gemini-flash-latest
-        self.model_names = ["gemini-flash-latest", "gemini-pro-latest"]
-        self.model_name = self.model_names[0] 
+        api_key = os.getenv("GOOGLE_API_KEY")
+        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.model_names = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"]
+        self.model_name = self.model_names[0]
         print(f"VISION SYSTEM INIT: Active Model -> {self.model_name}")
         
         # LOCAL RETINA: Yüz Algılama (OpenCV)
@@ -64,10 +67,14 @@ class VisionSystem:
 
             # API Call Loop
             errors = []
+            if not self.client:
+                return {"success": False, "error": "API anahtarı bulunamadı."}
             for model_name in self.model_names:
                 try:
-                    model = genai.GenerativeModel(model_name)
-                    response = model.generate_content([full_prompt, image])
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=[full_prompt, image]
+                    )
                     text = response.text.strip()
                     
                     result = {"success": True, "analysis": text}

@@ -3,7 +3,7 @@ from .. import models
 import datetime
 import json
 import os
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -34,8 +34,7 @@ if not api_key:
     except:
         pass
 
-if api_key:
-    genai.configure(api_key=api_key)
+_genai_client = genai.Client(api_key=api_key) if api_key else None
 
 class AZIBrain:
     def __init__(self):
@@ -46,13 +45,12 @@ class AZIBrain:
         else:
             print("AZI BRAIN: DİKKAT! API Anahtarı bulunamadı!")
 
-        # Model listesi (Öncelik sırasına göre - Mevcut olanlar)
-        # HIZ VE KOTA DOSTU LİSTE (SADECE GEÇERLİ MODELLER)
+        self.client = _genai_client
+        # Güncel model listesi (google.genai SDK 2.x)
         self.model_names = [
-            "gemini-1.5-flash",           # Yeni, hızlı ve kotalara daha dayanıklı
-            "gemini-flash-latest",        # (1.5 Flash otomatik güncel)
-            "gemini-2.0-flash-lite",      # Yedek
-            "gemini-pro-latest"           # Son çare
+            "gemini-2.0-flash",       # Birincil: hızlı ve güncel
+            "gemini-2.0-flash-lite",  # İkincil: daha hafif
+            "gemini-1.5-flash",       # Yedek
         ]
         
         self.system_instruction = """
@@ -163,14 +161,18 @@ class AZIBrain:
         429 (Kota) hatası alırsa ve süre kısaysa bekleyip tekrar dener.
         """
         errors = []
-        import time 
+        import time
         import re
+
+        if not self.client:
+            return None, "API anahtarı bulunamadı. .env dosyasını kontrol edin."
 
         for i, model_name in enumerate(self.model_names):
             try:
-                # Modeli o an oluşturuyoruz
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
+                response = self.client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
                 return response, None # Başarılı
             except Exception as e:
                 error_str = str(e)
@@ -194,8 +196,7 @@ class AZIBrain:
                             # Tekrar dene (Sadece bir kez)
                             try:
                                 print(f"{model_name} için TEKRAR deneniyor...")
-                                model = genai.GenerativeModel(model_name) # Modeli tazeleyelim
-                                response = model.generate_content(prompt)
+                                response = self.client.models.generate_content(model=model_name, contents=prompt)
                                 return response, None
                             except Exception as retry_e:
                                 print(f"{model_name} TEKRAR DENEME HATASI: {retry_e}")
@@ -207,8 +208,7 @@ class AZIBrain:
                         print("AZI BRAIN: Kota hatası, süre belirsiz. 30sn bekleniyor...")
                         time.sleep(30)
                         try:
-                            model = genai.GenerativeModel(model_name)
-                            response = model.generate_content(prompt)
+                            response = self.client.models.generate_content(model=model_name, contents=prompt)
                             return response, None
                         except Exception as e2:
                             errors.append(f"{model_name}: Kota Aşımı (Belirsiz süre)")

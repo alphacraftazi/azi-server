@@ -28,8 +28,7 @@ class ActivityOut(BaseModel):
     date: datetime.datetime
     ai_insight: str = ""
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 @router.get("/activities", response_model=list[ActivityOut])
 def get_activities(db: Session = Depends(get_db)):
